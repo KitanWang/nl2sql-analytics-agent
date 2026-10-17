@@ -35,9 +35,12 @@ data/*.duckdb.wal
 # ---------- 运行输出 ----------
 runs/
 outputs/
-reports/preds/*.jsonl
 reports/*.log
 *.log
+
+# 注意：reports/preds/ 下的逐条评测记录**要入库**。
+# 那是「报告里每个数字都能回查」的唯一证据——每条记录含生成的 SQL、执行结果、
+# 判分结论与耗时。总共约 300 KB，没有理由不入库。
 
 # ---------- 编辑器 / 系统 ----------
 .idea/
