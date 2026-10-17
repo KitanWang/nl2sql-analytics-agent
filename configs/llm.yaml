@@ -1,0 +1,42 @@
+# LLM 配置模板（入库）。
+#
+# 真实 API key 放在 configs/local.yaml（已被 .gitignore 排除），格式：
+#
+#   profiles:
+#     default:
+#       api_key: "在这里填 key"
+#
+# 也可以用环境变量：给 profile 设 api_key_env，然后 export 同名变量。
+
+default_profile: codebuddy
+
+profiles:
+  # CodeBuddy（腾讯，OpenAI 兼容）—— 本机实测可用，**必须流式**
+  codebuddy:
+    base_url: https://copilot.tencent.com/v2
+    model: deepseek-v4.1-flash
+    api_key_env: CODEBUDDY_API_KEY
+    temperature: 0.0
+    max_tokens: 2048
+    timeout_s: 180
+    extra_body:
+      # 关掉思考过程，只保留可解析的 SQL/JSON 输出；实测开着会显著变慢
+      thinking:
+        type: disabled
+
+  # 火山方舟 ARK（OpenAI 兼容）
+  ark:
+    base_url: https://ark.cn-beijing.volces.com/api/v3
+    model: deepseek-v4-1-flash-260910
+    api_key_env: ARK_API_KEY
+    temperature: 0.0
+    max_tokens: 2048
+    timeout_s: 180
+
+  # 任何 OpenAI 兼容服务（自建 vLLM / Ollama / DashScope …）
+  openai_compatible:
+    base_url: http://127.0.0.1:8000/v1
+    model: your-model
+    api_key_env: OPENAI_API_KEY
+    temperature: 0.0
+    max_tokens: 2048

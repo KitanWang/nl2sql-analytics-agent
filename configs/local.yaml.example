@@ -1,0 +1,8 @@
+# 复制成 configs/local.yaml 并填入真实 key（local.yaml 不入库）
+default_profile: codebuddy
+
+profiles:
+  codebuddy:
+    api_key: "ck_xxx"
+  ark:
+    api_key: "ark-xxx"
