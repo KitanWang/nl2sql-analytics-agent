@@ -57,6 +57,8 @@ def result(rows, ok=True, sql="SELECT 1", stage="", error="") -> AgentResult:
     (0.02, 0.0, 0.005, False),
     ("1,234.56", 1234.56, 0.005, True),  # 字符串数字
     (None, None, 0.005, True),
+    (None, 0.0, 0.005, True),     # SUM 空结果 NULL vs COALESCE 0
+    (0.0, None, 0.005, True),
 ])
 def test_values_equal(got, want, tol, expected) -> None:
     assert values_equal(got, want, tol) is expected

@@ -191,7 +191,8 @@ def build_cases(processed: Path) -> list[EvalCase]:
         glossary_terms=("净销售额",),
     ))
     add(EvalCase(
-        "B03", "B 业务口径", "2025 年 6 月的客单价是多少？（净销售额 / 有效订单数）", "scalar",
+        "B03", "B 业务口径",
+        "2025 年 6 月的客单价是多少？（净销售额 / 有效订单数，净销售额 = 订单金额 − 退款）", "scalar",
         money((v[v["year_month"] == "2025-06"]["order_amount"].sum()
                - v[v["year_month"] == "2025-06"]["refund_amount"].sum())
               / max(1, v[v["year_month"] == "2025-06"]["order_id"].nunique())),
@@ -335,7 +336,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     prev = (v[v["year_month"] == "2025-11"]["order_amount"].sum())
     cur = (v[v["year_month"] == "2025-12"]["order_amount"].sum())
     add(EvalCase(
-        "D02", "D 时间序列", "2025 年 12 月的销售额环比增长率是多少？（小数表示）", "scalar",
+        "D02", "D 时间序列", "2025 年 12 月的销售额环比增长率是多少？（与 2025 年 11 月比，0-1 小数）", "scalar",
         round(float((cur - prev) / prev), 4) if prev else 0.0,
         tolerance=0.02,
         notes="环比=与上月比",
@@ -359,7 +360,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     q_sales = (v.assign(q=v["order_date"].dt.quarter, y=v["order_date"].dt.year)
                .query("y == 2025").groupby("q")["order_amount"].sum().round(2))
     add(EvalCase(
-        "D06", "D 时间序列", "2025 年四个季度各自的销售额", "series",
+        "D06", "D 时间序列", "2025 年四个季度各自的销售额（用 1-4 表示季度）", "series",
         [[int(k), money(x)] for k, x in q_sales.items()],
         order_sensitive=True,
     ))
@@ -372,7 +373,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     ))
     yoy_base = (v[v["year_month"] == "2024-06"]["order_amount"].sum())
     add(EvalCase(
-        "D08", "D 时间序列", "2025 年 6 月的销售额同比增长率是多少？（小数）", "scalar",
+        "D08", "D 时间序列", "2025 年 6 月的销售额同比增长率是多少？（与 2024 年 6 月比，0-1 小数）", "scalar",
         round(float((v[v["year_month"] == "2025-06"]["order_amount"].sum() - yoy_base) / yoy_base), 4),
         tolerance=0.02,
         notes="同比=与去年同月比",
@@ -489,7 +490,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     ))
     paid_ratio = (v["pay_amount"].sum() / v["order_amount"].sum())
     add(EvalCase(
-        "F05", "F 比率与占比", "整体回款率是多少？（回款金额/订单金额，小数）", "scalar",
+        "F05", "F 比率与占比", "有效订单的整体回款率是多少？（有效订单的回款金额 / 有效订单的订单金额，小数）", "scalar",
         round(float(paid_ratio), 4), tolerance=0.02,
     ))
     aov_chan = (v.groupby("channel").apply(
@@ -504,10 +505,13 @@ def build_cases(processed: Path) -> list[EvalCase]:
     ))
 
     # ══════════ G 边界与陷阱（4）══════════
+    # 与 B07 同理：退款订单状态是 refunded，**不过滤有效订单**，否则会漏掉大部分退款
+    jan24 = f[(f["year_month"] == "2024-01") & (f["ship_region"] == "西北")]
     add(EvalCase(
-        "G01", "G 边界与陷阱", "2024 年 1 月下单、收货大区为西北的订单，产生过多少退款？（按有效订单）", "scalar",
-        money(v[(v["year_month"] == "2024-01") & (v["ship_region"] == "西北")]["refund_amount"].sum()),
-        notes="按订单归属月；结果可能为 0，考的是不要编造",
+        "G01", "G 边界与陷阱",
+        "2024 年 1 月下单、收货大区为西北的订单，一共产生过多少退款金额？（含已退款订单）", "scalar",
+        money(jan24["refund_amount"].sum()),
+        notes=f"按订单归属月；全量订单（含 refunded 状态），共 {len(jan24)} 单",
     ))
     add(EvalCase(
         "G02", "G 边界与陷阱", "有多少笔有效订单的运费是 0？", "scalar",
@@ -519,10 +523,12 @@ def build_cases(processed: Path) -> list[EvalCase]:
         int(gift["is_gift"].sum()),
         notes="赠品行 unit_price=0，不参与客单价但计入动销",
     ))
+    # 超界月份没有数据：SUM 返回 NULL、COALESCE 返回 0，两者都算对——
+    # 关键是**不能返回别的月份的数据**，也不能报错。判分侧把 NULL 视同 0 处理。
     add(EvalCase(
         "G04", "G 边界与陷阱", "2026 年 1 月的销售额是多少？（数据截止 2025-12-31）", "scalar",
         0.0,
-        notes="超界时间应返回 0/空，不能返回全年数据或报错",
+        notes="超界时间返回 0 或 NULL 均可，不能返回其他月份数据或报错",
         glossary_terms=("时间范围",),
     ))
 

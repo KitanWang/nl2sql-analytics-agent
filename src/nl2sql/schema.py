@@ -261,6 +261,21 @@ def to_prompt_schema(tables: tuple[Table, ...] = TABLES) -> str:
     return "\n".join(out).rstrip()
 
 
+def to_ddl_schema(tables: tuple[Table, ...] = TABLES) -> str:
+    """只给「表名 + 列名 + 类型」的裸 DDL，**不带任何业务注释**。
+
+    这是消融实验的起点：模拟「把库结构直接丢给模型」的常见做法。
+    和 `to_prompt_schema()` 的差值，就是「schema 里写清口径」这件事值多少分。
+    """
+    out: list[str] = []
+    for t in tables:
+        cols = ",\n".join(f'  "{c.name}" {c.dtype}' for c in t.columns)
+        out.append(f"CREATE TABLE {t.name} (\n{cols}\n);")
+    out.append("-- 另有视图 v_order_fact，字段与 sales_orders 相近，含 order_amount / refund_amount / "
+               "items_cost / pay_amount")
+    return "\n\n".join(out)
+
+
 def all_column_refs() -> dict[str, set[str]]:
     """{表名: 列名集合}，供 SQL 护栏做列级校验。"""
     return {t.name: set(t.column_names) for t in TABLES}

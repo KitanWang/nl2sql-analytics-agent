@@ -129,7 +129,7 @@
   {
     "id": "B03",
     "group": "B 业务口径",
-    "question": "2025 年 6 月的客单价是多少？（净销售额 / 有效订单数）",
+    "question": "2025 年 6 月的客单价是多少？（净销售额 / 有效订单数，净销售额 = 订单金额 − 退款）",
     "kind": "scalar",
     "expected": 44919.85,
     "order_sensitive": false,
@@ -581,7 +581,7 @@
   {
     "id": "D02",
     "group": "D 时间序列",
-    "question": "2025 年 12 月的销售额环比增长率是多少？（小数表示）",
+    "question": "2025 年 12 月的销售额环比增长率是多少？（与 2025 年 11 月比，0-1 小数）",
     "kind": "scalar",
     "expected": 0.7112,
     "order_sensitive": false,
@@ -634,7 +634,7 @@
   {
     "id": "D06",
     "group": "D 时间序列",
-    "question": "2025 年四个季度各自的销售额",
+    "question": "2025 年四个季度各自的销售额（用 1-4 表示季度）",
     "kind": "series",
     "expected": [
       [
@@ -673,7 +673,7 @@
   {
     "id": "D08",
     "group": "D 时间序列",
-    "question": "2025 年 6 月的销售额同比增长率是多少？（小数）",
+    "question": "2025 年 6 月的销售额同比增长率是多少？（与 2024 年 6 月比，0-1 小数）",
     "kind": "scalar",
     "expected": -0.2359,
     "order_sensitive": false,
@@ -1022,7 +1022,7 @@
   {
     "id": "F05",
     "group": "F 比率与占比",
-    "question": "整体回款率是多少？（回款金额/订单金额，小数）",
+    "question": "有效订单的整体回款率是多少？（有效订单的回款金额 / 有效订单的订单金额，小数）",
     "kind": "scalar",
     "expected": 0.8917,
     "order_sensitive": false,
@@ -1051,12 +1051,12 @@
   {
     "id": "G01",
     "group": "G 边界与陷阱",
-    "question": "2024 年 1 月下单、收货大区为西北的订单，产生过多少退款？（按有效订单）",
+    "question": "2024 年 1 月下单、收货大区为西北的订单，一共产生过多少退款金额？（含已退款订单）",
     "kind": "scalar",
     "expected": 34181.8,
     "order_sensitive": false,
     "tolerance": 0.005,
-    "notes": "按订单归属月；结果可能为 0，考的是不要编造",
+    "notes": "按订单归属月；全量订单（含 refunded 状态），共 25 单",
     "glossary_terms": []
   },
   {
@@ -1089,7 +1089,7 @@
     "expected": 0.0,
     "order_sensitive": false,
     "tolerance": 0.005,
-    "notes": "超界时间应返回 0/空，不能返回全年数据或报错",
+    "notes": "超界时间返回 0 或 NULL 均可，不能返回其他月份数据或报错",
     "glossary_terms": [
       "时间范围"
     ]

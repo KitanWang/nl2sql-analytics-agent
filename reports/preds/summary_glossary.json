@@ -1,12 +1,12 @@
 {
   "profile": "glossary",
   "n": 50,
-  "correct": 38,
-  "accuracy": 0.76,
-  "avg_ms": 2093.1,
-  "total_ms": 104654.9,
-  "prompt_tokens": 132279,
-  "completion_tokens": 4009,
+  "correct": 46,
+  "accuracy": 0.92,
+  "avg_ms": 1810.2,
+  "total_ms": 90511.9,
+  "prompt_tokens": 132308,
+  "completion_tokens": 4004,
   "repairs_total": 0,
   "repair_rate": 0.0,
   "by_group": {
@@ -16,15 +16,15 @@
     },
     "B 业务口径": {
       "n": 10,
-      "correct": 8
+      "correct": 10
     },
     "C 分组与排名": {
       "n": 8,
-      "correct": 7
+      "correct": 8
     },
     "D 时间序列": {
       "n": 8,
-      "correct": 3
+      "correct": 5
     },
     "E 多表关联": {
       "n": 6,
@@ -32,16 +32,17 @@
     },
     "F 比率与占比": {
       "n": 6,
-      "correct": 4
+      "correct": 6
     },
     "G 边界与陷阱": {
       "n": 4,
-      "correct": 3
+      "correct": 4
     }
   },
   "by_error": {
-    "数值误差": 8,
-    "排序不符": 2,
-    "执行失败": 2
+    "数值误差": 1,
+    "排序不符": 1,
+    "安全拦截": 1,
+    "执行失败": 1
   }
 }

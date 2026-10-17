@@ -7,12 +7,13 @@
 
 ## 四个配置分别证明什么
 
-| profile | 口径 | 少样本 | 自修复 | 用来回答 |
-| :--- | :--- | :--- | :--- | :--- |
-| `baseline` | ✗ | ✗ | ✗ | 「不注入上下文能到多少？」 |
-| `glossary` | ✓ | ✗ | ✗ | 「业务口径值多少分？」 |
-| `fewshot` | ✓ | ✓ 检索 | ✗ | 「示例又多值多少分？」 |
-| `full` | ✓ | ✓ 检索 | ✓ 2 次 | 「工程护栏 + 自修复能救回多少？」 |
+| profile | schema | 口径 | 少样本 | 自修复 | 用来回答 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `baseline` | 裸 DDL | ✗ | ✗ | ✗ | 「只把表结构丢给模型能到多少？」 |
+| `schema` | 带口径注释 | ✗ | ✗ | ✗ | 「**把口径写进 schema** 值多少分？」 |
+| `glossary` | 带口径注释 | ✓ | ✗ | ✗ | 「再注入独立业务口径值多少分？」 |
+| `fewshot` | 带口径注释 | ✓ | ✓ 检索 | ✗ | 「检索式少样本值多少分？」 |
+| `full` | 带口径注释 | ✓ | ✓ 检索 | ✓ 2 次 | 「护栏 + 自修复能救回多少？」 |
 
 所有配置共用同一个模型、temperature=0、同一份评测集——差异只来自上面这几列。
 """
@@ -40,8 +41,16 @@ REPORTS = ROOT / "reports"
 PREDS = REPORTS / "preds"
 
 PROFILES: dict[str, AgentConfig] = {
+    # 起点：只有裸 DDL（表名列名类型），没有任何业务口径提示——
+    # 这是「直接把库结构丢给模型」的常见做法，用来量化「把口径写进 schema」的价值
     "baseline": AgentConfig(
-        use_glossary=False, use_fewshot=False, max_repairs=0, answer_question=False,
+        schema_mode="ddl", use_glossary=False, use_fewshot=False,
+        max_repairs=0, answer_question=False,
+    ),
+    # 加一档：schema 里带业务口径注释，但仍不注入 glossary、不给示例
+    "schema": AgentConfig(
+        schema_mode="rich", use_glossary=False, use_fewshot=False,
+        max_repairs=0, answer_question=False,
     ),
     "glossary": AgentConfig(
         use_glossary=True, use_fewshot=False, max_repairs=0, answer_question=False,

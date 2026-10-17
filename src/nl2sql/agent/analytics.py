@@ -109,6 +109,8 @@ class AgentResult:
 @dataclass
 class AgentConfig:
     # 消融实验的开关都放这里，`scripts/run_eval.py` 直接按 profile 覆盖
+    # schema_mode: "rich" = 带中文业务口径的 schema；"ddl" = 只有表名列名的裸 DDL
+    schema_mode: str = "rich"
     use_glossary: bool = True
     use_fewshot: bool = True
     fewshot_k: int = 3
@@ -274,10 +276,15 @@ class AnalyticsAgent:
         examples = self._select_examples(question)
         res.retrieved = [{"question": e.question, "score": round(self.retriever.score(question, EXAMPLES.index(e)), 3)}
                          for e in examples]
+        from nl2sql.schema import to_ddl_schema, to_prompt_schema
+
+        schema_text = (to_ddl_schema() if self.cfg.schema_mode == "ddl"
+                       else to_prompt_schema())
         pb = build_sql_prompt(
             question,
             examples=tuple(e.as_prompt_pair() for e in examples),
             include_glossary=self.cfg.use_glossary,
+            schema_text=schema_text,
         )
         t = time.perf_counter()
         try:
