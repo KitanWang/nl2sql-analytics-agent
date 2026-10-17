@@ -1,0 +1,1097 @@
+[
+  {
+    "id": "A01",
+    "group": "A 基础指标",
+    "question": "数据集里一共有多少有效订单？",
+    "kind": "scalar",
+    "expected": 7802,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "有效订单 = paid+shipped+completed",
+    "glossary_terms": [
+      "有效订单 / 有效销售额"
+    ]
+  },
+  {
+    "id": "A02",
+    "group": "A 基础指标",
+    "question": "2025 年 6 月的有效销售额是多少？",
+    "kind": "scalar",
+    "expected": 16973131.56,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "月度筛选 + 有效订单口径",
+    "glossary_terms": [
+      "订单金额 / 销售额 / GMV / 营收",
+      "有效订单 / 有效销售额"
+    ]
+  },
+  {
+    "id": "A03",
+    "group": "A 基础指标",
+    "question": "华东区的有效销售额是多少？",
+    "kind": "scalar",
+    "expected": 106621500.6,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "地区默认用收货大区",
+    "glossary_terms": [
+      "地区 / 大区"
+    ]
+  },
+  {
+    "id": "A04",
+    "group": "A 基础指标",
+    "question": "2025 年一共发了多少个订单（有效订单）？",
+    "kind": "scalar",
+    "expected": 3890,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": [
+      "有效订单 / 有效销售额"
+    ]
+  },
+  {
+    "id": "A05",
+    "group": "A 基础指标",
+    "question": "2025 年有多少个不同的客户下过有效订单？",
+    "kind": "scalar",
+    "expected": 463,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": [
+      "客户数 / 活跃客户数"
+    ]
+  },
+  {
+    "id": "A06",
+    "group": "A 基础指标",
+    "question": "官网渠道今年（2025 年）的有效销售额是多少？",
+    "kind": "scalar",
+    "expected": 40104934.03,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "A07",
+    "group": "A 基础指标",
+    "question": "2025 年第一季度（1-3 月）的销售额是多少？",
+    "kind": "scalar",
+    "expected": 39867795.38,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "季度要用日期区间，不能用字符串比较",
+    "glossary_terms": []
+  },
+  {
+    "id": "A08",
+    "group": "A 基础指标",
+    "question": "一共有多少个客户在册（customers 表全量）？",
+    "kind": "scalar",
+    "expected": 474,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "明确问在册客户才用全表，不是有下单的客户数",
+    "glossary_terms": [
+      "客户数 / 活跃客户数"
+    ]
+  },
+  {
+    "id": "B01",
+    "group": "B 业务口径",
+    "question": "2025 年 6 月的销售额是多少？（不要用源系统的订单金额字段）",
+    "kind": "scalar",
+    "expected": 16973131.56,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "考：不能用 order_amount_raw（偏差 12%）",
+    "glossary_terms": [
+      "订单金额 / 销售额 / GMV / 营收"
+    ]
+  },
+  {
+    "id": "B02",
+    "group": "B 业务口径",
+    "question": "2025 年 6 月的净销售额是多少？",
+    "kind": "scalar",
+    "expected": 16755105.21,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": [
+      "净销售额"
+    ]
+  },
+  {
+    "id": "B03",
+    "group": "B 业务口径",
+    "question": "2025 年 6 月的客单价是多少？",
+    "kind": "scalar",
+    "expected": 44919.85,
+    "order_sensitive": false,
+    "tolerance": 0.01,
+    "notes": "客单价=净销售额/有效订单数",
+    "glossary_terms": [
+      "客单价（AOV）",
+      "净销售额"
+    ]
+  },
+  {
+    "id": "B04",
+    "group": "B 业务口径",
+    "question": "2025 年整体毛利率是多少？（用 0-1 之间的小数表示）",
+    "kind": "scalar",
+    "expected": 0.2353,
+    "order_sensitive": false,
+    "tolerance": 0.01,
+    "notes": "毛利率=(订单金额-成本-退款)/订单金额",
+    "glossary_terms": [
+      "毛利率"
+    ]
+  },
+  {
+    "id": "B05",
+    "group": "B 业务口径",
+    "question": "在册客户里有几个的注册大区是华东？（按客户档案，不是按订单收货地区）",
+    "kind": "scalar",
+    "expected": 139,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "明确说注册地 → 用 customers.region，不是 ship_region",
+    "glossary_terms": [
+      "地区 / 大区"
+    ]
+  },
+  {
+    "id": "B06",
+    "group": "B 业务口径",
+    "question": "2025 年 6 月的有效订单数是多少？",
+    "kind": "scalar",
+    "expected": 373,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": [
+      "有效订单 / 有效销售额"
+    ]
+  },
+  {
+    "id": "B07",
+    "group": "B 业务口径",
+    "question": "2025 年 6 月的退款总额是多少？",
+    "kind": "scalar",
+    "expected": 218026.35,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "只统计 status='success' 的退款",
+    "glossary_terms": [
+      "退款率"
+    ]
+  },
+  {
+    "id": "B08",
+    "group": "B 业务口径",
+    "question": "2025 年 6 月的回款总额是多少？",
+    "kind": "scalar",
+    "expected": 15077540.62,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "只统计 pay_status='success' 的回款",
+    "glossary_terms": []
+  },
+  {
+    "id": "B09",
+    "group": "B 业务口径",
+    "question": "2025 年 4 月的有效销售额是多少？",
+    "kind": "scalar",
+    "expected": 13221795.25,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "同 A02 但换月，检查是否稳定（不是靠记忆）",
+    "glossary_terms": [
+      "订单金额 / 销售额 / GMV / 营收"
+    ]
+  },
+  {
+    "id": "B10",
+    "group": "B 业务口径",
+    "question": "全部订单（含取消和退款）的总金额是多少？",
+    "kind": "scalar",
+    "expected": 447063478.95,
+    "order_sensitive": false,
+    "tolerance": 0.01,
+    "notes": "明确说「含取消」→ 不套用有效订单口径，考的是**不被口径反噬**",
+    "glossary_terms": [
+      "有效订单 / 有效销售额"
+    ]
+  },
+  {
+    "id": "C01",
+    "group": "C 分组与排名",
+    "question": "各渠道的销售额分别是多少？",
+    "kind": "series",
+    "expected": [
+      [
+        "线下",
+        140573631.96
+      ],
+      [
+        "官网",
+        86454769.14
+      ],
+      [
+        "天猫",
+        66666442.47
+      ],
+      [
+        "京东",
+        60398687.19
+      ],
+      [
+        "抖音",
+        35283387.74
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "按销售额降序",
+    "glossary_terms": []
+  },
+  {
+    "id": "C02",
+    "group": "C 分组与排名",
+    "question": "各大区的销售额排名，从高到低",
+    "kind": "series",
+    "expected": [
+      [
+        "华东",
+        106621500.6
+      ],
+      [
+        "华中",
+        62912803.33
+      ],
+      [
+        "华北",
+        57157121.48
+      ],
+      [
+        "华南",
+        54278272.56
+      ],
+      [
+        "西南",
+        40355917.36
+      ],
+      [
+        "东北",
+        35052111.97
+      ],
+      [
+        "西北",
+        32999191.2
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": [
+      "地区 / 大区",
+      "销售排名 TOP N"
+    ]
+  },
+  {
+    "id": "C03",
+    "group": "C 分组与排名",
+    "question": "销售额最高的 5 个客户是哪几个？",
+    "kind": "series",
+    "expected": [
+      [
+        "青岛中航自动化科技有限公司",
+        4969939.65
+      ],
+      [
+        "长沙正泰机电设备有限公司",
+        4277537.87
+      ],
+      [
+        "成都恒通机电设备有限公司",
+        4130394.33
+      ],
+      [
+        "昆明恒通工业技术有限公司",
+        3879339.91
+      ],
+      [
+        "上海正泰精密五金有限公司",
+        3736748.17
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": [
+      "销售排名 TOP N"
+    ]
+  },
+  {
+    "id": "C04",
+    "group": "C 分组与排名",
+    "question": "不同客户分层（KA/SMB/长尾）的销售额",
+    "kind": "series",
+    "expected": [
+      [
+        "SMB",
+        205411414.21
+      ],
+      [
+        "KA",
+        119936512.44
+      ],
+      [
+        "长尾",
+        64028991.85
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "C05",
+    "group": "C 分组与排名",
+    "question": "各行业客户的销售额，从高到低",
+    "kind": "series",
+    "expected": [
+      [
+        "新能源",
+        75218230.27
+      ],
+      [
+        "医疗器械",
+        64675828.26
+      ],
+      [
+        "汽车零部件",
+        53528225.69
+      ],
+      [
+        "食品饮料",
+        46566435.76
+      ],
+      [
+        "电子制造",
+        44317199.83
+      ],
+      [
+        "机械加工",
+        39973633.05
+      ],
+      [
+        "建材",
+        33648150.2
+      ],
+      [
+        "化工",
+        31449215.44
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "C06",
+    "group": "C 分组与排名",
+    "question": "销售负责人业绩排名",
+    "kind": "series",
+    "expected": [
+      [
+        "陈杰",
+        53696678.77
+      ],
+      [
+        "赵磊",
+        51123586.43
+      ],
+      [
+        "刘敏",
+        48580676.91
+      ],
+      [
+        "张伟",
+        48516176.27
+      ],
+      [
+        "王强",
+        47604742.34
+      ],
+      [
+        "孙悦",
+        47167701.78
+      ],
+      [
+        "周涛",
+        46589535.08
+      ],
+      [
+        "李娜",
+        46097820.92
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "C07",
+    "group": "C 分组与排名",
+    "question": "各品类的销售额，从高到低",
+    "kind": "series",
+    "expected": [
+      [
+        "工业相机",
+        323474598.46
+      ],
+      [
+        "伺服电机",
+        202658789.12
+      ],
+      [
+        "传感器",
+        198887184.77
+      ],
+      [
+        "控制器",
+        163510902.11
+      ],
+      [
+        "线缆",
+        137166134.62
+      ],
+      [
+        "气动元件",
+        132427161.06
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.02,
+    "notes": "品类维度必须下钻 order_items × products；按订单金额分摊会有重复计数，容差放宽到 2%",
+    "glossary_terms": []
+  },
+  {
+    "id": "C08",
+    "group": "C 分组与排名",
+    "question": "每个渠道有多少个有效订单？",
+    "kind": "series",
+    "expected": [
+      [
+        "线下",
+        2762
+      ],
+      [
+        "官网",
+        1708
+      ],
+      [
+        "天猫",
+        1386
+      ],
+      [
+        "京东",
+        1234
+      ],
+      [
+        "抖音",
+        712
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "D01",
+    "group": "D 时间序列",
+    "question": "2025 年每个月的销售额",
+    "kind": "series",
+    "expected": [
+      [
+        "2025-01",
+        15297795.98
+      ],
+      [
+        "2025-02",
+        10253040.83
+      ],
+      [
+        "2025-03",
+        14316958.57
+      ],
+      [
+        "2025-04",
+        13221795.25
+      ],
+      [
+        "2025-05",
+        15990097.46
+      ],
+      [
+        "2025-06",
+        16973131.56
+      ],
+      [
+        "2025-07",
+        14446419.74
+      ],
+      [
+        "2025-08",
+        14838466.43
+      ],
+      [
+        "2025-09",
+        12142044.94
+      ],
+      [
+        "2025-10",
+        14468404.43
+      ],
+      [
+        "2025-11",
+        15563151.44
+      ],
+      [
+        "2025-12",
+        26632316.26
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "D02",
+    "group": "D 时间序列",
+    "question": "2025 年 12 月的销售额环比增长率是多少？（小数表示）",
+    "kind": "scalar",
+    "expected": 0.7112,
+    "order_sensitive": false,
+    "tolerance": 0.02,
+    "notes": "环比=与上月比",
+    "glossary_terms": [
+      "环比 / 同比"
+    ]
+  },
+  {
+    "id": "D03",
+    "group": "D 时间序列",
+    "question": "数据里最新的一个月是哪个月？它的销售额是多少？",
+    "kind": "series",
+    "expected": [
+      [
+        "2025-12",
+        26632316.26
+      ]
+    ],
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "「最新」以数据里的最大日期为准，不是系统当前日期",
+    "glossary_terms": [
+      "时间范围"
+    ]
+  },
+  {
+    "id": "D04",
+    "group": "D 时间序列",
+    "question": "2025 年第三季度的销售额是多少？",
+    "kind": "scalar",
+    "expected": 41426931.11,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "D05",
+    "group": "D 时间序列",
+    "question": "2025 年下半年（7-12 月）的销售额是多少？",
+    "kind": "scalar",
+    "expected": 98090803.24,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "D06",
+    "group": "D 时间序列",
+    "question": "2025 年四个季度各自的销售额",
+    "kind": "series",
+    "expected": [
+      [
+        1,
+        39867795.38
+      ],
+      [
+        2,
+        46185024.27
+      ],
+      [
+        3,
+        41426931.11
+      ],
+      [
+        4,
+        56663872.13
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "D07",
+    "group": "D 时间序列",
+    "question": "2025 年 6 月有多少天有有效订单？",
+    "kind": "scalar",
+    "expected": 30,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "按日期去重计数",
+    "glossary_terms": []
+  },
+  {
+    "id": "D08",
+    "group": "D 时间序列",
+    "question": "2025 年 6 月的销售额同比增长率是多少？（小数）",
+    "kind": "scalar",
+    "expected": -0.2359,
+    "order_sensitive": false,
+    "tolerance": 0.02,
+    "notes": "同比=与去年同月比",
+    "glossary_terms": [
+      "环比 / 同比"
+    ]
+  },
+  {
+    "id": "E01",
+    "group": "E 多表关联",
+    "question": "各品牌的销售额排名",
+    "kind": "series",
+    "expected": [
+      [
+        "Delta",
+        186379271.99
+      ],
+      [
+        "Omron",
+        171850474.76
+      ],
+      [
+        "Kistler",
+        167043132.46
+      ],
+      [
+        "Keyence",
+        158933427.96
+      ],
+      [
+        "Sick",
+        152147514.18
+      ],
+      [
+        "Festo",
+        114958007.63
+      ],
+      [
+        "Inovance",
+        111428071.93
+      ],
+      [
+        "Beckhoff",
+        95384869.23
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.02,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "E02",
+    "group": "E 多表关联",
+    "question": "抖音渠道各品牌的销售额",
+    "kind": "series",
+    "expected": [
+      [
+        "Delta",
+        19022232.47
+      ],
+      [
+        "Kistler",
+        14277726.19
+      ],
+      [
+        "Keyence",
+        13538239.08
+      ],
+      [
+        "Festo",
+        12929053.96
+      ],
+      [
+        "Omron",
+        12226835.71
+      ],
+      [
+        "Sick",
+        11750350.26
+      ],
+      [
+        "Inovance",
+        11343985.74
+      ],
+      [
+        "Beckhoff",
+        7669128.68
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.02,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "E03",
+    "group": "E 多表关联",
+    "question": "销售额最高的 5 个商品及金额",
+    "kind": "series",
+    "expected": [
+      [
+        "Kistler 面阵相机 X659",
+        8791317.18
+      ],
+      [
+        "Inovance 线扫相机 E771",
+        8326055.44
+      ],
+      [
+        "Delta 3D 相机 S629",
+        7847566.47
+      ],
+      [
+        "Omron 3D 相机 M626",
+        7832180.94
+      ],
+      [
+        "Kistler 面阵相机 E990",
+        7056372.21
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.01,
+    "notes": "按明细行金额汇总，不是订单金额",
+    "glossary_terms": []
+  },
+  {
+    "id": "E04",
+    "group": "E 多表关联",
+    "question": "汽车零部件行业客户买得最多的品类是什么？",
+    "kind": "series",
+    "expected": [
+      [
+        "伺服电机",
+        23457798.65
+      ],
+      [
+        "控制器",
+        16463015.86
+      ],
+      [
+        "工业相机",
+        8447744.86
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.02,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "E05",
+    "group": "E 多表关联",
+    "question": "各行业有多少个客户下过单？",
+    "kind": "series",
+    "expected": [
+      [
+        "化工",
+        70
+      ],
+      [
+        "新能源",
+        66
+      ],
+      [
+        "医疗器械",
+        62
+      ],
+      [
+        "汽车零部件",
+        62
+      ],
+      [
+        "食品饮料",
+        59
+      ],
+      [
+        "建材",
+        56
+      ],
+      [
+        "电子制造",
+        52
+      ],
+      [
+        "机械加工",
+        47
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "E06",
+    "group": "E 多表关联",
+    "question": "哪 5 个客户下单笔数最多？",
+    "kind": "series",
+    "expected": [
+      [
+        "西安嘉禾精密五金有限公司",
+        26
+      ],
+      [
+        "苏州嘉禾智能装备(第2分公司)",
+        25
+      ],
+      [
+        "沈阳东盛自动化科技有限公司",
+        23
+      ],
+      [
+        "宁波联创电子科技(第2分公司)",
+        23
+      ],
+      [
+        "沈阳宏昌精密五金(第2分公司)",
+        23
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": [
+      "销售排名 TOP N"
+    ]
+  },
+  {
+    "id": "F01",
+    "group": "F 比率与占比",
+    "question": "各行业的退款率是多少？（小数）",
+    "kind": "series",
+    "expected": [
+      [
+        "电子制造",
+        0.0115
+      ],
+      [
+        "新能源",
+        0.0114
+      ],
+      [
+        "建材",
+        0.0094
+      ],
+      [
+        "化工",
+        0.0091
+      ],
+      [
+        "医疗器械",
+        0.007
+      ],
+      [
+        "汽车零部件",
+        0.0069
+      ],
+      [
+        "机械加工",
+        0.0057
+      ],
+      [
+        "食品饮料",
+        0.0049
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.02,
+    "notes": "",
+    "glossary_terms": [
+      "退款率"
+    ]
+  },
+  {
+    "id": "F02",
+    "group": "F 比率与占比",
+    "question": "各收货大区的销售额占比",
+    "kind": "series",
+    "expected": [
+      [
+        "华东",
+        0.2738
+      ],
+      [
+        "华中",
+        0.1616
+      ],
+      [
+        "华北",
+        0.1468
+      ],
+      [
+        "华南",
+        0.1394
+      ],
+      [
+        "西南",
+        0.1036
+      ],
+      [
+        "东北",
+        0.09
+      ],
+      [
+        "西北",
+        0.0847
+      ]
+    ],
+    "order_sensitive": true,
+    "tolerance": 0.02,
+    "notes": "",
+    "glossary_terms": [
+      "地区 / 大区"
+    ]
+  },
+  {
+    "id": "F03",
+    "group": "F 比率与占比",
+    "question": "复购率是多少？即下单次数达到 2 次及以上的客户占比（小数）",
+    "kind": "scalar",
+    "expected": 0.9958,
+    "order_sensitive": false,
+    "tolerance": 0.01,
+    "notes": "",
+    "glossary_terms": [
+      "复购率"
+    ]
+  },
+  {
+    "id": "F04",
+    "group": "F 比率与占比",
+    "question": "在售商品的动销率是多少？（有成交的在售商品数 / 在售商品总数，小数）",
+    "kind": "scalar",
+    "expected": 1.0,
+    "order_sensitive": false,
+    "tolerance": 0.02,
+    "notes": "",
+    "glossary_terms": [
+      "动销 / 上架商品动销率"
+    ]
+  },
+  {
+    "id": "F05",
+    "group": "F 比率与占比",
+    "question": "整体回款率是多少？（回款金额/订单金额，小数）",
+    "kind": "scalar",
+    "expected": 0.8917,
+    "order_sensitive": false,
+    "tolerance": 0.02,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "F06",
+    "group": "F 比率与占比",
+    "question": "哪个渠道的客单价最高？客单价是多少？",
+    "kind": "series",
+    "expected": [
+      [
+        "线下",
+        50389.65
+      ]
+    ],
+    "order_sensitive": false,
+    "tolerance": 0.01,
+    "notes": "",
+    "glossary_terms": [
+      "客单价（AOV）"
+    ]
+  },
+  {
+    "id": "G01",
+    "group": "G 边界与陷阱",
+    "question": "2024 年 1 月西北区的退款总额是多少？",
+    "kind": "scalar",
+    "expected": 34181.8,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "结果可能是 0，考的是不要编造",
+    "glossary_terms": []
+  },
+  {
+    "id": "G02",
+    "group": "G 边界与陷阱",
+    "question": "有多少笔有效订单的运费是 0？",
+    "kind": "scalar",
+    "expected": 4301,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "",
+    "glossary_terms": []
+  },
+  {
+    "id": "G03",
+    "group": "G 边界与陷阱",
+    "question": "有效订单里一共包含多少个赠品行？",
+    "kind": "scalar",
+    "expected": 558,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "赠品行 unit_price=0，不参与客单价但计入动销",
+    "glossary_terms": []
+  },
+  {
+    "id": "G04",
+    "group": "G 边界与陷阱",
+    "question": "2026 年 1 月的销售额是多少？（数据截止 2025-12-31）",
+    "kind": "scalar",
+    "expected": 0.0,
+    "order_sensitive": false,
+    "tolerance": 0.005,
+    "notes": "超界时间应返回 0/空，不能返回全年数据或报错",
+    "glossary_terms": [
+      "时间范围"
+    ]
+  }
+]
