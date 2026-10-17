@@ -333,9 +333,10 @@ def build_cases(processed: Path) -> list[EvalCase]:
         glossary_terms=("环比 / 同比",),
     ))
     add(EvalCase(
-        "D03", "D 时间序列", "数据里最新的一个月是哪个月？它的销售额是多少？", "series",
+        "D03", "D 时间序列", "有效订单里最新的一个月是哪个月？它的销售额是多少？", "series",
         [[str(v["year_month"].max()), money(v[v["year_month"] == v["year_month"].max()]["order_amount"].sum())]],
-        notes="「最新」以数据里的最大日期为准，不是系统当前日期",
+        notes="「最新」= 有效订单的最大下单日期所在月（sales_orders 里还有 2026-03 的"
+              "取消单，用全表 max 会得到一个没有销售额的月份——这个坑正是要考的）",
         glossary_terms=("时间范围",),
     ))
     add(EvalCase(
@@ -424,12 +425,14 @@ def build_cases(processed: Path) -> list[EvalCase]:
         [[k, int(x)] for k, x in ind_cust.items()],
         order_sensitive=True,
     ))
-    # 客户 × 渠道
-    cust_chan = (v.groupby(["customer_name", "channel"])["order_id"].nunique()
-                 .reset_index().sort_values("order_id", ascending=False).head(5))
+    # 客户维度下单笔数。注意这里**只能按客户分组**：早先误写成 (customer_name, channel)
+    # 分组，得到的是「客户在某渠道的笔数」，最高只有 26——与真实答案（61）差了一倍多。
+    # 这是评测集自身的 bug，不是模型错。
+    cust_cnt = (v.groupby("customer_name")["order_id"].nunique()
+                .sort_values(ascending=False).head(5))
     add(EvalCase(
         "E06", "E 多表关联", "哪 5 个客户的有效订单笔数最多？（只要客户名和笔数）", "series",
-        [[r.customer_name, int(r.order_id)] for r in cust_chan.itertuples()],
+        [[k, int(x)] for k, x in cust_cnt.items()],
         order_sensitive=True,
         glossary_terms=("销售排名 TOP N",),
     ))
