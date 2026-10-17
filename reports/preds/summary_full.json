@@ -3,12 +3,12 @@
   "n": 50,
   "correct": 48,
   "accuracy": 0.96,
-  "avg_ms": 4351.8,
-  "total_ms": 217591.5,
-  "prompt_tokens": 160414,
-  "completion_tokens": 7093,
-  "repairs_total": 4,
-  "repair_rate": 0.08,
+  "avg_ms": 3852.0,
+  "total_ms": 192600.7,
+  "prompt_tokens": 159388,
+  "completion_tokens": 6934,
+  "repairs_total": 1,
+  "repair_rate": 0.02,
   "by_group": {
     "A 基础指标": {
       "n": 8,
@@ -20,7 +20,7 @@
     },
     "C 分组与排名": {
       "n": 8,
-      "correct": 8
+      "correct": 7
     },
     "D 时间序列": {
       "n": 8,
@@ -28,7 +28,7 @@
     },
     "E 多表关联": {
       "n": 6,
-      "correct": 5
+      "correct": 6
     },
     "F 比率与占比": {
       "n": 6,
@@ -40,7 +40,6 @@
     }
   },
   "by_error": {
-    "排序不符": 1,
-    "安全拦截": 1
+    "数值误差": 2
   }
 }

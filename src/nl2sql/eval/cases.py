@@ -296,7 +296,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     ))
     by_rep = (v.groupby("sales_rep")["order_amount"].sum().sort_values(ascending=False).round(2))
     add(EvalCase(
-        "C06", "C 分组与排名", "销售负责人业绩排名", "series",
+        "C06", "C 分组与排名", "销售负责人业绩排名（按订单金额，不扣退款）", "series",
         [[k, money(x)] for k, x in by_rep.items()],
         order_sensitive=True,
     ))
@@ -478,15 +478,21 @@ def build_cases(processed: Path) -> list[EvalCase]:
         round(repeat_rate_all, 4), tolerance=0.01,
         glossary_terms=("复购率",),
     ))
-    # 动销率 = 有成交的商品数 / 在售商品数。
-    # 注意分母只能取「在售」商品：全量商品里有已下架的，用它当分母会让指标失去意义。
-    on_sale = pd.read_parquet(processed / "products.parquet").query("is_on_sale")
-    sold_products = oi[oi["product_id"].isin(on_sale["product_id"])]["product_id"].nunique()
+    # 动销率在这个数据集上不可用：216 个商品全部有过成交，按商品算恒为 1.0。
+    # 与其硬造一个「看起来像动销率」的指标，不如换成**在这个数据集上真有区分度**的比率。
+    # 这道题考的是「按客户 × 品类组合去重」——比单纯 COUNT 更容易写错（要两步去重）。
+    # oi 里没有 customer_id，要回到事实表 v 上取
+    oi_cust = (items.merge(v[["order_id", "customer_id"]], on="order_id")
+               .merge(prods[["product_id", "category"]], on="product_id"))
+    cust_cat = oi_cust.groupby("category")["customer_id"].nunique()
+    total_cust = v["customer_id"].nunique()
+    top_cat = cust_cat.sort_values(ascending=False)
     add(EvalCase(
-        "F04", "F 比率与占比", "在售商品的动销率是多少？（有成交的在售商品数 / 在售商品总数，小数）", "scalar",
-        round(float(sold_products / len(on_sale)), 4),
+        "F04", "F 比率与占比",
+        "买过「工业相机」的客户，占全部下单客户的比例是多少？（小数）", "scalar",
+        round(float(cust_cat.get("工业相机", 0) / total_cust), 4),
         tolerance=0.02,
-        glossary_terms=("动销 / 上架商品动销率",),
+        notes="需要客户 × 品类去重计数；单看订单数会重复计同一客户",
     ))
     paid_ratio = (v["pay_amount"].sum() / v["order_amount"].sum())
     add(EvalCase(

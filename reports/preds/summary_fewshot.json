@@ -1,12 +1,12 @@
 {
   "profile": "fewshot",
   "n": 50,
-  "correct": 49,
-  "accuracy": 0.98,
-  "avg_ms": 1960.0,
-  "total_ms": 98000.1,
+  "correct": 46,
+  "accuracy": 0.92,
+  "avg_ms": 2399.5,
+  "total_ms": 119974.3,
   "prompt_tokens": 147721,
-  "completion_tokens": 3774,
+  "completion_tokens": 3780,
   "repairs_total": 0,
   "repair_rate": 0.0,
   "by_group": {
@@ -24,7 +24,7 @@
     },
     "D 时间序列": {
       "n": 8,
-      "correct": 7
+      "correct": 5
     },
     "E 多表关联": {
       "n": 6,
@@ -32,7 +32,7 @@
     },
     "F 比率与占比": {
       "n": 6,
-      "correct": 6
+      "correct": 5
     },
     "G 边界与陷阱": {
       "n": 4,
@@ -40,6 +40,8 @@
     }
   },
   "by_error": {
-    "安全拦截": 1
+    "安全拦截": 2,
+    "执行失败": 1,
+    "数值误差": 1
   }
 }

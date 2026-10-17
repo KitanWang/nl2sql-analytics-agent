@@ -409,7 +409,7 @@
   {
     "id": "C06",
     "group": "C 分组与排名",
-    "question": "销售负责人业绩排名",
+    "question": "销售负责人业绩排名（按订单金额，不扣退款）",
     "kind": "series",
     "expected": [
       [
@@ -1009,15 +1009,13 @@
   {
     "id": "F04",
     "group": "F 比率与占比",
-    "question": "在售商品的动销率是多少？（有成交的在售商品数 / 在售商品总数，小数）",
+    "question": "买过「工业相机」的客户，占全部下单客户的比例是多少？（小数）",
     "kind": "scalar",
-    "expected": 1.0,
+    "expected": 0.9008,
     "order_sensitive": false,
     "tolerance": 0.02,
-    "notes": "",
-    "glossary_terms": [
-      "动销 / 上架商品动销率"
-    ]
+    "notes": "需要客户 × 品类去重计数；单看订单数会重复计同一客户",
+    "glossary_terms": []
   },
   {
     "id": "F05",
