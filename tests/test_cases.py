@@ -110,9 +110,10 @@ CANONICAL_SQL: dict[str, str] = {
     "B06": "SELECT COUNT(DISTINCT order_id) FROM v_order_fact "
            "WHERE status IN ('paid','shipped','completed') "
            "AND order_date >= DATE '2025-06-01' AND order_date < DATE '2025-07-01'",
-    "B07": "SELECT ROUND(SUM(refund_amount),2) FROM v_order_fact "
-           "WHERE status IN ('paid','shipped','completed') "
-           "AND order_date >= DATE '2025-06-01' AND order_date < DATE '2025-07-01'",
+    # 注意：退款的订单状态是 refunded，不能套用「有效订单」过滤
+    "B07": "SELECT ROUND(SUM(r.amount),2) FROM refunds r JOIN sales_orders o USING (order_id) "
+           "WHERE r.status = 'success' "
+           "AND o.order_date >= DATE '2025-06-01' AND o.order_date < DATE '2025-07-01'",
     "B10": "SELECT ROUND(SUM(order_amount),2) FROM v_order_fact",
     "C01": "SELECT channel, ROUND(SUM(order_amount),2) AS amt FROM v_order_fact "
            "WHERE status IN ('paid','shipped','completed') GROUP BY 1 ORDER BY amt DESC",
@@ -124,6 +125,9 @@ CANONICAL_SQL: dict[str, str] = {
     "D05": "SELECT ROUND(SUM(order_amount),2) FROM v_order_fact "
            "WHERE status IN ('paid','shipped','completed') "
            "AND order_date >= DATE '2025-07-01' AND order_date < DATE '2026-01-01'",
+    "B08": "SELECT ROUND(SUM(amount),2) FROM payments "
+           "WHERE pay_status = 'success' "
+           "AND pay_date >= DATE '2025-06-01' AND pay_date < DATE '2025-07-01'",
     "G04": "SELECT COALESCE(ROUND(SUM(order_amount),2), 0) FROM v_order_fact "
            "WHERE status IN ('paid','shipped','completed') "
            "AND order_date >= DATE '2026-01-01' AND order_date < DATE '2026-02-01'",
