@@ -1,0 +1,45 @@
+{
+  "profile": "schema",
+  "n": 50,
+  "correct": 47,
+  "accuracy": 0.94,
+  "avg_ms": 1819.2,
+  "total_ms": 90961.5,
+  "prompt_tokens": 66870,
+  "completion_tokens": 5079,
+  "repairs_total": 0,
+  "repair_rate": 0.0,
+  "by_group": {
+    "A 基础指标": {
+      "n": 8,
+      "correct": 8
+    },
+    "B 业务口径": {
+      "n": 10,
+      "correct": 9
+    },
+    "C 分组与排名": {
+      "n": 8,
+      "correct": 8
+    },
+    "D 时间序列": {
+      "n": 8,
+      "correct": 7
+    },
+    "E 多表关联": {
+      "n": 6,
+      "correct": 6
+    },
+    "F 比率与占比": {
+      "n": 6,
+      "correct": 5
+    },
+    "G 边界与陷阱": {
+      "n": 4,
+      "correct": 4
+    }
+  },
+  "by_error": {
+    "数值误差": 3
+  }
+}

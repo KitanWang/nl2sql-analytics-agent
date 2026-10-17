@@ -47,6 +47,9 @@ from nl2sql.sqlsafe.executor import SQLRunner
 def _num(v: Any) -> float | None:
     if v is None or isinstance(v, bool):
         return None
+    # records 落盘时把 NULL 写成了字符串 "None"，回放判分时也要能识别
+    if isinstance(v, str) and v.strip() in ("None", "NULL", "null", ""):
+        return None
     if isinstance(v, (int, float)):
         return float(v)
     if isinstance(v, Decimal):
@@ -149,7 +152,9 @@ def _row_key(row: Iterable[Any]) -> str:
 def values_equal(a: Any, b: Any, tol: float) -> bool:
     # `SUM()` 在空结果上返回 NULL，用 `COALESCE` 返回 0——两者都是「没有数据」的合法表达，
     # 期望值为 0 时不应因为 NULL/0 之差判错。
-    if (a is None and _num(b) == 0) or (b is None and _num(a) == 0):
+    a_null = a is None or (isinstance(a, str) and a.strip() in ("None", "NULL", ""))
+    b_null = b is None or (isinstance(b, str) and b.strip() in ("None", "NULL", ""))
+    if (a_null and _num(b) == 0) or (b_null and _num(a) == 0):
         return True
     na, nb = _num(a), _num(b)
     if na is not None and nb is not None:
@@ -227,6 +232,8 @@ def judge(case: EvalCase, res: AgentResult) -> JudgeResult:
         )
 
     # 每行可能有多种裁列方式，取「能让全部行都对上」的那一种
+    # 注意：必须**逐行按同一序号取候选**（而不是每行各自挑最像的），
+    # 否则不同行可能用了不同的列组合，等于在拿乱序数据凑答案。
     def align(cands_per_row: list[list[list[Any]]]) -> tuple[bool, str]:
         # 先试顺序敏感/顺序无关两种比较，任一成功即可
         for scheme in range(max(len(c) for c in cands_per_row)):
@@ -291,9 +298,19 @@ def _crop_candidates(row: tuple, expected_ncols: int) -> list[list[Any]]:
     r = list(row)
     if len(r) <= expected_ncols:
         return [r]
-    cands = [r[:expected_ncols], r[-expected_ncols:]]
+
+    cands: list[list[Any]] = [r[:expected_ncols], r[-expected_ncols:]]
     if expected_ncols >= 2:
         cands.append([r[0]] + r[-(expected_ncols - 1):])
+
+    # 关键补充：模型经常把**维度列放前面、数值列放后面**，并在中间插入一堆
+    # 自己认为有用的计数列（订单数、客户数…）。此时正确答案是「首个非数值列 + 最有意义的数值列」，
+    # 而它可能在第 4、第 5 列。枚举「保留首列 + 任选 n-1 个数值列」的所有组合，
+    # 组合数在 10 列以内是可接受的（C(9,1)=9），且判分是逐行按同一 scheme 走，不会错配。
+    if expected_ncols == 2:
+        for i in range(1, len(r)):
+            cands.append([r[0], r[i]])
+
     # 去重但保持顺序
     out, seen = [], set()
     for c in cands:

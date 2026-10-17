@@ -1,12 +1,12 @@
 {
   "profile": "glossary",
   "n": 50,
-  "correct": 46,
-  "accuracy": 0.92,
-  "avg_ms": 1810.2,
-  "total_ms": 90511.9,
-  "prompt_tokens": 132308,
-  "completion_tokens": 4004,
+  "correct": 48,
+  "accuracy": 0.96,
+  "avg_ms": 1718.1,
+  "total_ms": 85905.2,
+  "prompt_tokens": 132370,
+  "completion_tokens": 3784,
   "repairs_total": 0,
   "repair_rate": 0.0,
   "by_group": {
@@ -20,11 +20,11 @@
     },
     "C 分组与排名": {
       "n": 8,
-      "correct": 8
+      "correct": 7
     },
     "D 时间序列": {
       "n": 8,
-      "correct": 5
+      "correct": 8
     },
     "E 多表关联": {
       "n": 6,
@@ -41,8 +41,6 @@
   },
   "by_error": {
     "数值误差": 1,
-    "排序不符": 1,
-    "安全拦截": 1,
     "执行失败": 1
   }
 }

@@ -2,78 +2,30 @@
   {
     "profile": "baseline",
     "n": 50,
-    "correct": 34,
-    "accuracy": 0.68,
-    "avg_ms": 1940.2,
-    "total_ms": 97008.0,
-    "prompt_tokens": 66689,
-    "completion_tokens": 4859,
+    "correct": 12,
+    "accuracy": 0.24,
+    "avg_ms": 1778.8,
+    "total_ms": 88940.0,
+    "prompt_tokens": 29770,
+    "completion_tokens": 4035,
     "repairs_total": 0,
     "repair_rate": 0.0,
     "by_group": {
       "A 基础指标": {
         "n": 8,
-        "correct": 8
-      },
-      "B 业务口径": {
-        "n": 10,
-        "correct": 6
-      },
-      "C 分组与排名": {
-        "n": 8,
-        "correct": 6
-      },
-      "D 时间序列": {
-        "n": 8,
-        "correct": 6
-      },
-      "E 多表关联": {
-        "n": 6,
         "correct": 2
       },
-      "F 比率与占比": {
-        "n": 6,
-        "correct": 3
-      },
-      "G 边界与陷阱": {
-        "n": 4,
-        "correct": 3
-      }
-    },
-    "by_error": {
-      "数值误差": 8,
-      "排序不符": 4,
-      "安全拦截": 3,
-      "行数不符": 1
-    }
-  },
-  {
-    "profile": "glossary",
-    "n": 50,
-    "correct": 36,
-    "accuracy": 0.72,
-    "avg_ms": 2553.4,
-    "total_ms": 127672.1,
-    "prompt_tokens": 132189,
-    "completion_tokens": 3760,
-    "repairs_total": 0,
-    "repair_rate": 0.0,
-    "by_group": {
-      "A 基础指标": {
-        "n": 8,
-        "correct": 8
-      },
       "B 业务口径": {
         "n": 10,
-        "correct": 9
+        "correct": 3
       },
       "C 分组与排名": {
         "n": 8,
-        "correct": 5
+        "correct": 0
       },
       "D 时间序列": {
         "n": 8,
-        "correct": 5
+        "correct": 1
       },
       "E 多表关联": {
         "n": 6,
@@ -81,30 +33,28 @@
       },
       "F 比率与占比": {
         "n": 6,
-        "correct": 4
+        "correct": 3
       },
       "G 边界与陷阱": {
         "n": 4,
-        "correct": 4
+        "correct": 2
       }
     },
     "by_error": {
-      "数值误差": 3,
-      "排序不符": 5,
-      "执行失败": 4,
-      "无结果": 1,
-      "行数不符": 1
+      "数值误差": 29,
+      "口径错": 6,
+      "排序不符": 3
     }
   },
   {
-    "profile": "fewshot",
+    "profile": "schema",
     "n": 50,
-    "correct": 38,
-    "accuracy": 0.76,
-    "avg_ms": 2911.0,
-    "total_ms": 145547.7,
-    "prompt_tokens": 148222,
-    "completion_tokens": 3663,
+    "correct": 47,
+    "accuracy": 0.94,
+    "avg_ms": 1819.2,
+    "total_ms": 90961.5,
+    "prompt_tokens": 66870,
+    "completion_tokens": 5079,
     "repairs_total": 0,
     "repair_rate": 0.0,
     "by_group": {
@@ -118,15 +68,15 @@
       },
       "C 分组与排名": {
         "n": 8,
-        "correct": 4
+        "correct": 8
       },
       "D 时间序列": {
         "n": 8,
-        "correct": 6
+        "correct": 7
       },
       "E 多表关联": {
         "n": 6,
-        "correct": 2
+        "correct": 6
       },
       "F 比率与占比": {
         "n": 6,
@@ -138,23 +88,20 @@
       }
     },
     "by_error": {
-      "数值误差": 2,
-      "排序不符": 8,
-      "无结果": 1,
-      "行数不符": 1
+      "数值误差": 3
     }
   },
   {
-    "profile": "full",
+    "profile": "glossary",
     "n": 50,
-    "correct": 38,
-    "accuracy": 0.76,
-    "avg_ms": 5203.7,
-    "total_ms": 260186.4,
-    "prompt_tokens": 159716,
-    "completion_tokens": 6972,
-    "repairs_total": 1,
-    "repair_rate": 0.02,
+    "correct": 48,
+    "accuracy": 0.96,
+    "avg_ms": 1718.1,
+    "total_ms": 85905.2,
+    "prompt_tokens": 132370,
+    "completion_tokens": 3784,
+    "repairs_total": 0,
+    "repair_rate": 0.0,
     "by_group": {
       "A 基础指标": {
         "n": 8,
@@ -162,11 +109,57 @@
       },
       "B 业务口径": {
         "n": 10,
-        "correct": 9
+        "correct": 10
       },
       "C 分组与排名": {
         "n": 8,
+        "correct": 7
+      },
+      "D 时间序列": {
+        "n": 8,
+        "correct": 8
+      },
+      "E 多表关联": {
+        "n": 6,
+        "correct": 5
+      },
+      "F 比率与占比": {
+        "n": 6,
+        "correct": 6
+      },
+      "G 边界与陷阱": {
+        "n": 4,
         "correct": 4
+      }
+    },
+    "by_error": {
+      "数值误差": 1,
+      "执行失败": 1
+    }
+  },
+  {
+    "profile": "fewshot",
+    "n": 50,
+    "correct": 49,
+    "accuracy": 0.98,
+    "avg_ms": 1960.0,
+    "total_ms": 98000.1,
+    "prompt_tokens": 147721,
+    "completion_tokens": 3774,
+    "repairs_total": 0,
+    "repair_rate": 0.0,
+    "by_group": {
+      "A 基础指标": {
+        "n": 8,
+        "correct": 8
+      },
+      "B 业务口径": {
+        "n": 10,
+        "correct": 10
+      },
+      "C 分组与排名": {
+        "n": 8,
+        "correct": 8
       },
       "D 时间序列": {
         "n": 8,
@@ -174,21 +167,65 @@
       },
       "E 多表关联": {
         "n": 6,
-        "correct": 3
+        "correct": 6
       },
       "F 比率与占比": {
         "n": 6,
-        "correct": 4
+        "correct": 6
       },
       "G 边界与陷阱": {
         "n": 4,
-        "correct": 3
+        "correct": 4
       }
     },
     "by_error": {
-      "数值误差": 6,
-      "排序不符": 5,
-      "行数不符": 1
+      "安全拦截": 1
+    }
+  },
+  {
+    "profile": "full",
+    "n": 50,
+    "correct": 48,
+    "accuracy": 0.96,
+    "avg_ms": 4351.8,
+    "total_ms": 217591.5,
+    "prompt_tokens": 160414,
+    "completion_tokens": 7093,
+    "repairs_total": 4,
+    "repair_rate": 0.08,
+    "by_group": {
+      "A 基础指标": {
+        "n": 8,
+        "correct": 8
+      },
+      "B 业务口径": {
+        "n": 10,
+        "correct": 10
+      },
+      "C 分组与排名": {
+        "n": 8,
+        "correct": 8
+      },
+      "D 时间序列": {
+        "n": 8,
+        "correct": 8
+      },
+      "E 多表关联": {
+        "n": 6,
+        "correct": 5
+      },
+      "F 比率与占比": {
+        "n": 6,
+        "correct": 5
+      },
+      "G 边界与陷阱": {
+        "n": 4,
+        "correct": 4
+      }
+    },
+    "by_error": {
+      "排序不符": 1,
+      "安全拦截": 1
     }
   }
 ]

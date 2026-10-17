@@ -156,6 +156,13 @@ def test_series_order_insensitive() -> None:
     assert judge(c, result([("华东", Decimal("100.0")), ("华南", Decimal("80.0"))])).correct
 
 
+def test_crop_finds_value_after_extra_count_columns() -> None:
+    """模型在维度列后面插了几列计数，金额在更后面时也要能对上。"""
+    row = ("陈杰", 950, 360, Decimal("53696678.77"), Decimal("53044269.62"))
+    cands = _crop_candidates(row, 2)
+    assert [row[0], row[3]] in cands
+
+
 def test_normalize_got_candidates_cover_tail() -> None:
     """多列时既要能取前 N 列，也要能取末 N 列——两种模型习惯都会出现。"""
     assert ["East", Decimal("1")] in _crop_candidates(("华东", "East", Decimal("1")), 2)
