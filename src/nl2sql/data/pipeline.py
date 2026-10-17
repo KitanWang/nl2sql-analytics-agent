@@ -94,21 +94,54 @@ def dedupe_orders(orders: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     return out, {"before": before, "after": len(out), "exact_tie": int(tie)}
 
 
-def normalize_payment_units(payments: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+def normalize_payment_units(
+    payments: pd.DataFrame, order_amounts: dict[str, float] | None = None
+) -> tuple[pd.DataFrame, dict]:
     """回款金额单位混用：识别「分」并换算成「元」。
 
-    判定逻辑刻意保守：只对 **大于阈值** 的金额做换算。
-    真实项目里这里必须和业务对账（比如用订单金额做交叉验证），
-    我先用「单笔回款不可能超过 5000 万元」这个业务常识兜底，
-    再用「换算后 ≤ 订单金额 × 1.2」做二次校验。
+    ## 为什么不能用单一阈值
+
+    第一版只用了「金额 > 5000 万 → 认为单位是分」。这个规则**会漏**：
+    一笔 4.4 万元的订单，如果金额被写成「分」（4,402,210），
+    它低于 5000 万阈值，会被当成 440 万元正常回款 —— 回款率直接变成 100 倍。
+    这是本项目里实际踩到的缺陷，最终导致「整体回款率 = 1.32」这种不可能的数。
+
+    正确做法是**用订单金额做交叉校验**：
+      候选解释 ① 单位是元     → 回款/订单 ≈ 0.x
+      候选解释 ② 单位是分     → 回款/订单 ≈ 100×
+    哪个解释更接近业务常识（0 < ratio ≤ 1.5）就用哪个；
+    两个都不合理时（订单还没生成）退化为阈值法。
     """
     p = payments.copy()
     before_max = float(p["amount"].max()) if len(p) else 0.0
-    mask = p["amount"] > FEN_SUSPECT_CENTS
-    n = int(mask.sum())
-    p.loc[mask, "amount"] = (p.loc[mask, "amount"] / 100).round(2)
+    converted = 0
+
+    if order_amounts is not None:
+        ref = p["order_id"].map(order_amounts)
+        # 解释 ① 的偏差：|回款/订单 - 1|
+        r1 = (p["amount"] / ref).abs()
+        # 解释 ② 的偏差：换算成元之后再比
+        r2 = ((p["amount"] / 100) / ref).abs()
+        # 只对「按元解释明显不合理、按分解释明显更合理」且换算后不超 1.5 倍的行动手
+        use_fen = (
+            ((r1 > 1.5) | (p["amount"] > FEN_SUSPECT_CENTS))
+            & (r2 <= 1.5)
+            & ref.notna()
+        )
+        converted = int(use_fen.sum())
+        p.loc[use_fen, "amount"] = (p.loc[use_fen, "amount"] / 100).round(2)
+
+    # 兜底：订单金额缺失时用绝对阈值
+    still_big = p["amount"] > FEN_SUSPECT_CENTS
+    n_fallback = int(still_big.sum())
+    if n_fallback:
+        p.loc[still_big, "amount"] = (p.loc[still_big, "amount"] / 100).round(2)
+    converted += n_fallback
+
     return p, {
-        "converted_rows": n,
+        "converted_rows": converted,
+        "converted_by_order_check": converted - n_fallback,
+        "converted_by_threshold": n_fallback,
         "max_before": before_max,
         "max_after": float(p["amount"].max()) if len(p) else 0.0,
     }
@@ -283,7 +316,11 @@ def clean(raw: Dataset) -> CleanResult:
                  f"（中位偏差 {amount_stats['material_median_dev_pct']:+.1%}）")
 
     # ── 6. 回款单位换算 ──
-    payments, pay_unit = normalize_payment_units(raw.payments)
+    # 用「订单金额」交叉校验单位解释，比单一阈值可靠（见函数 docstring 说明的漏检案例）
+    order_amount_map = (
+        orders.set_index("order_id")["order_amount_expected"].to_dict()
+    )
+    payments, pay_unit = normalize_payment_units(raw.payments, order_amount_map)
     rep.add("回款金额单位归一", "部分老接口以「分」为单位", len(payments), len(payments),
             note=f"换算 {pay_unit['converted_rows']} 条，最大值 {pay_unit['max_before']:.0f} → "
                  f"{pay_unit['max_after']:.0f} 元")
@@ -304,6 +341,21 @@ def clean(raw: Dataset) -> CleanResult:
             orphan["orders_removed"] + orphan["items_removed"], 0,
             note=f"订单 {orphan['orders_removed']}、明细 {orphan['items_removed']}、"
                  f"回款 {orphan['payments_removed']}、退款 {orphan['refunds_removed']}")
+
+    # ── 8.5 负金额订单 ──
+    # 优惠大于成交额（合成器的折扣上限只约束了 50%，明细全被红冲剔除后仍可能出现负数）。
+    # 业务上「这张订单没花客户的钱」，金额应为 0；把优惠压到等于成交额，保留订单本身。
+    neg = orders["order_amount_expected"] < 0
+    if int(neg.sum()):
+        orders.loc[neg, "discount_amount"] = (
+            orders.loc[neg, "items_amount"] + orders.loc[neg, "shipping_fee"]
+        ).round(2)
+        orders.loc[neg, "order_amount_expected"] = 0.0
+        orders.loc[neg, "amount_deviation"] = (
+            orders.loc[neg, "order_amount_raw"] - orders.loc[neg, "order_amount_expected"]
+        ).round(2)
+    rep.add("负金额订单归零", "整单优惠大于成交额（优惠券系统本应拦截）", len(orders), len(orders),
+            note=f"修正 {int(neg.sum())} 条，把优惠压到等于成交额")
 
     # ── 9. 无明细订单 ──
     # 红冲剔除后，少数订单的明细被全部剔光，剩下一张「空订单」。

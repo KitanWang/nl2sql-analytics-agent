@@ -3,23 +3,25 @@
     "amount_validation": {
       "rows": 9000,
       "mismatch_rows": 590,
-      "mismatch_rate": 0.0658,
+      "mismatch_rate": 0.0659,
       "material_rows": 587,
-      "material_rate": 0.0655,
+      "material_rate": 0.0656,
       "material_median_dev_pct": 0.12,
       "money_weighted_dev_pct": 0.0118,
       "p95_abs_dev_pct": 0.12,
-      "amount_at_stake": 5797251.63
+      "amount_at_stake": 5797239.31
     },
     "payment_units": {
-      "converted_rows": 41,
+      "converted_rows": 221,
+      "converted_by_order_check": 221,
+      "converted_by_threshold": 0,
       "max_before": 70268590.0,
-      "max_after": 4989600.0
+      "max_after": 1027785.5
     },
     "refund_cap": {
-      "capped": 19,
-      "total_before": 23460842.26,
-      "total_after": 23195498.91
+      "capped": 16,
+      "total_before": 23461696.66,
+      "total_after": 23196512.14
     },
     "orphans": {
       "orders_removed": 68,
@@ -46,7 +48,7 @@
       "2024-01-01",
       "2026-03-15"
     ],
-    "content_hash": "3cf53e75aec7cfa4"
+    "content_hash": "4f0cd47b779408de"
   },
   "report": "reports/data_quality.md",
   "db": "data/warehouse.duckdb"

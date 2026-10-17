@@ -284,9 +284,15 @@ def _gen_orders(
     orders = pd.DataFrame(order_rows)
 
     amount_by_order = items.groupby("order_id")["item_amount"].sum()
+    items_amount = orders["order_id"].map(amount_by_order).fillna(0.0)
+    # 整单优惠不能超过行金额合计（现实中优惠券系统会做这个校验），
+    # 否则会算出负金额订单——那是个真实的坑，但不该由合成器自己制造出来。
+    orders["discount_amount"] = np.minimum(
+        orders["discount_amount"].to_numpy(),
+        (items_amount * 0.5).round(2).to_numpy(),
+    )
     orders["order_amount_raw"] = (
-        orders["order_id"].map(amount_by_order)
-        + orders["shipping_fee"] - orders["discount_amount"]
+        items_amount + orders["shipping_fee"] - orders["discount_amount"]
     ).round(2)
     return orders, items
 
