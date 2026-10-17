@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: 创建虚拟环境并安装依赖
+        run: |
+          uv venv venv --python ${{ matrix.python }}
+          uv pip install --python venv/bin/python -e ".[dev]"
+          # duckdb 已随主依赖安装；pytest 用 [dev]
+
+      - name: 构建数仓（合成数据 + 清洗 + DuckDB）
+        run: venv/bin/python scripts/build_warehouse.py
+
+      - name: 口径自洽性校验
+        run: venv/bin/python scripts/build_warehouse.py --check
+
+      - name: 运行单元测试
+        run: venv/bin/python -m pytest tests/ -v --tb=short
+
+      - name: 覆盖率报告
+        if: matrix.python == '3.12'
+        run: |
+          uv pip install --python venv/bin/python pytest-cov
+          venv/bin/python -m pytest tests/ --cov=src/nl2sql --cov-report=term-missing
+
+      # 注意：评测（scripts/run_eval.py）需要真实 LLM API，不在 CI 里跑。
+      # 它属于「人工运行、结果入库」的实验，见 reports/RESULTS.md。
