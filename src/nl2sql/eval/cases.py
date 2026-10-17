@@ -191,7 +191,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
         glossary_terms=("净销售额",),
     ))
     add(EvalCase(
-        "B03", "B 业务口径", "2025 年 6 月的客单价是多少？", "scalar",
+        "B03", "B 业务口径", "2025 年 6 月的客单价是多少？（净销售额 / 有效订单数）", "scalar",
         money((v[v["year_month"] == "2025-06"]["order_amount"].sum()
                - v[v["year_month"] == "2025-06"]["refund_amount"].sum())
               / max(1, v[v["year_month"] == "2025-06"]["order_id"].nunique())),
@@ -220,10 +220,13 @@ def build_cases(processed: Path) -> list[EvalCase]:
         int(v[v["year_month"] == "2025-06"]["order_id"].nunique()),
         glossary_terms=("有效订单 / 有效销售额",),
     ))
+    # 退款有两个自然的月份口径：退款到账月（refunds.refund_date）与所属订单月（order_date）。
+    # 两者差异极大（一笔 6 月订单可能 8 月才退），不写清楚就是评测集自己的缺陷。
     add(EvalCase(
-        "B07", "B 业务口径", "2025 年 6 月的退款总额是多少？", "scalar",
+        "B07", "B 业务口径", "2025 年 6 月下单的那些订单，一共产生了多少退款金额？", "scalar",
         money(v[v["year_month"] == "2025-06"]["refund_amount"].sum()),
-        notes="只统计 status='success' 的退款",
+        notes="按订单所属月份归属退款；只统计 status='success'。"
+              "与「按退款到账月」差异大，题面必须写清口径",
         glossary_terms=("退款率",),
     ))
     add(EvalCase(
@@ -288,16 +291,21 @@ def build_cases(processed: Path) -> list[EvalCase]:
         order_sensitive=True,
     ))
     # 品类需要下钻明细
-    cat = (v.merge(pd.read_parquet(processed / "items.parquet")[["order_id", "product_id"]],
-                   on="order_id")
-           .merge(pd.read_parquet(processed / "products.parquet")[["product_id", "category"]],
-                  on="product_id")
-           .groupby("category")["order_amount"].sum().sort_values(ascending=False).round(2))
+    # 品类销售额有两种口径，必须二选一并在题面写清：
+    #   ① v_order_fact 的订单金额按订单 × 品类展开（一单多品类会重复计入，偏大）
+    #   ② 明细行金额 item_amount 汇总（准确，但漏掉运费与整单优惠）
+    # 这两种口径的差值是 100%，不是舍入误差——所以题面必须指定，
+    # 否则评测在测「猜口径」，而不是测能力。
+    cat_item = (v.merge(pd.read_parquet(processed / "items.parquet")[["order_id", "product_id", "item_amount"]],
+                        on="order_id")
+                .merge(pd.read_parquet(processed / "products.parquet")[["product_id", "category"]],
+                       on="product_id")
+                .groupby("category")["item_amount"].sum().sort_values(ascending=False).round(2))
     add(EvalCase(
-        "C07", "C 分组与排名", "各品类的销售额，从高到低", "series",
-        [[k, money(x)] for k, x in cat.items()],
-        order_sensitive=True, tolerance=0.02,
-        notes="品类维度必须下钻 order_items × products；按订单金额分摊会有重复计数，容差放宽到 2%",
+        "C07", "C 分组与排名", "各品类的销售额（按明细行金额汇总，不含运费与整单优惠），从高到低", "series",
+        [[k, money(x)] for k, x in cat_item.items()],
+        order_sensitive=True, tolerance=0.005,
+        notes="明确按明细金额口径；必须下钻 order_items × products",
         expected_tables=("order_items", "products"),
     ))
     cnt_channel = dict(v.groupby("channel")["order_id"].nunique().items())
@@ -362,23 +370,25 @@ def build_cases(processed: Path) -> list[EvalCase]:
     ))
 
     # ══════════ E 多表关联（6）══════════
-    brand = (v.merge(pd.read_parquet(processed / "items.parquet")[["order_id", "product_id"]], on="order_id")
+    brand = (v.merge(pd.read_parquet(processed / "items.parquet")[["order_id", "product_id", "item_amount"]],
+                     on="order_id")
              .merge(pd.read_parquet(processed / "products.parquet")[["product_id", "brand"]], on="product_id")
-             .groupby("brand")["order_amount"].sum().sort_values(ascending=False).round(2))
+             .groupby("brand")["item_amount"].sum().sort_values(ascending=False).round(2))
     add(EvalCase(
-        "E01", "E 多表关联", "各品牌的销售额排名", "series",
+        "E01", "E 多表关联", "各品牌的销售额排名（按明细行金额汇总）", "series",
         [[k, money(x)] for k, x in brand.head(10).items()],
-        order_sensitive=True, tolerance=0.02,
+        order_sensitive=True, tolerance=0.005,
         expected_tables=("order_items", "products"),
     ))
     douyin_brand = (v[v["channel"] == "抖音"]
-                    .merge(pd.read_parquet(processed / "items.parquet")[["order_id", "product_id"]], on="order_id")
+                    .merge(pd.read_parquet(processed / "items.parquet")[["order_id", "product_id", "item_amount"]],
+                           on="order_id")
                     .merge(pd.read_parquet(processed / "products.parquet")[["product_id", "brand"]], on="product_id")
-                    .groupby("brand")["order_amount"].sum().sort_values(ascending=False).round(2))
+                    .groupby("brand")["item_amount"].sum().sort_values(ascending=False).round(2))
     add(EvalCase(
-        "E02", "E 多表关联", "抖音渠道各品牌的销售额", "series",
+        "E02", "E 多表关联", "抖音渠道各品牌的销售额（按明细行金额汇总）", "series",
         [[k, money(x)] for k, x in douyin_brand.items()],
-        order_sensitive=True, tolerance=0.02,
+        order_sensitive=True, tolerance=0.005,
         expected_tables=("order_items", "products"),
     ))
     # 销售 Top 商品：用行金额更准确（一单多品类时按订单金额分摊会失真）
@@ -402,9 +412,9 @@ def build_cases(processed: Path) -> list[EvalCase]:
     ind_cat = (oi[oi["industry"] == "汽车零部件"]
                .groupby("category")["item_amount"].sum().sort_values(ascending=False).round(2))
     add(EvalCase(
-        "E04", "E 多表关联", "汽车零部件行业客户买得最多的品类是什么？", "series",
+        "E04", "E 多表关联", "汽车零部件行业客户的各品类采购额排名（按明细金额，前三名）", "series",
         [[k, money(x)] for k, x in ind_cat.head(3).items()],
-        order_sensitive=True, tolerance=0.02,
+        order_sensitive=True, tolerance=0.005,
         expected_tables=("order_items", "products", "customers"),
     ))
     # 客户数 × 行业
@@ -418,7 +428,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     cust_chan = (v.groupby(["customer_name", "channel"])["order_id"].nunique()
                  .reset_index().sort_values("order_id", ascending=False).head(5))
     add(EvalCase(
-        "E06", "E 多表关联", "哪 5 个客户下单笔数最多？", "series",
+        "E06", "E 多表关联", "哪 5 个客户的有效订单笔数最多？（只要客户名和笔数）", "series",
         [[r.customer_name, int(r.order_id)] for r in cust_chan.itertuples()],
         order_sensitive=True,
         glossary_terms=("销售排名 TOP N",),
@@ -437,7 +447,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     share = (v.groupby("ship_region")["order_amount"].sum()
              / v["order_amount"].sum()).sort_values(ascending=False).round(4)
     add(EvalCase(
-        "F02", "F 比率与占比", "各收货大区的销售额占比", "series",
+        "F02", "F 比率与占比", "各收货大区的销售额占比（0-1 的小数，不是百分数）", "series",
         [[k, round(float(x), 4)] for k, x in share.items()],
         order_sensitive=True, tolerance=0.02,
         glossary_terms=("地区 / 大区",),
@@ -470,7 +480,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
         lambda g: (g["order_amount"].sum() - g["refund_amount"].sum()) / g["order_id"].nunique(),
         include_groups=False).round(2))
     add(EvalCase(
-        "F06", "F 比率与占比", "哪个渠道的客单价最高？客单价是多少？", "series",
+        "F06", "F 比率与占比", "哪个渠道的客单价最高？客单价是多少？（净销售额 / 有效订单数）", "series",
         [[str(aov_chan.idxmax()), money(aov_chan.max())]],
         tolerance=0.01,
         glossary_terms=("客单价（AOV）",),
@@ -478,9 +488,9 @@ def build_cases(processed: Path) -> list[EvalCase]:
 
     # ══════════ G 边界与陷阱（4）══════════
     add(EvalCase(
-        "G01", "G 边界与陷阱", "2024 年 1 月西北区的退款总额是多少？", "scalar",
+        "G01", "G 边界与陷阱", "2024 年 1 月下单、收货大区为西北的订单，产生过多少退款？（按有效订单）", "scalar",
         money(v[(v["year_month"] == "2024-01") & (v["ship_region"] == "西北")]["refund_amount"].sum()),
-        notes="结果可能是 0，考的是不要编造",
+        notes="按订单归属月；结果可能为 0，考的是不要编造",
     ))
     add(EvalCase(
         "G02", "G 边界与陷阱", "有多少笔有效订单的运费是 0？", "scalar",
