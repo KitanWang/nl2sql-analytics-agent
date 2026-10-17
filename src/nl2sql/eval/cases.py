@@ -124,6 +124,17 @@ def build_ground_truth(processed: Path) -> pd.DataFrame:
     return f
 
 
+def _customers_region_count(processed: Path, region: str) -> int:
+    """统计某个注册大区下的在册客户数。
+
+    单独抽成函数而不是就地写 `df.query("region == '华东'")`，
+    是因为 pandas 2.x 的 `query` 对含中文 object 列的 DataFrame 有解析 bug
+    （详见 build_cases 里 D06 处的注释）。这里用显式布尔索引，跨版本行为一致。
+    """
+    customers = pd.read_parquet(processed / "customers.parquet")
+    return int(customers.loc[customers["region"] == region, "customer_id"].nunique())
+
+
 def build_cases(processed: Path) -> list[EvalCase]:
     f = build_ground_truth(processed)
     v = f[f["valid"]]
@@ -212,7 +223,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     ))
     add(EvalCase(
         "B05", "B 业务口径", "在册客户里有几个的注册大区是华东？（按客户档案，不是按订单收货地区）", "scalar",
-        int(pd.read_parquet(processed / "customers.parquet").query("region == '华东'")["customer_id"].nunique()),
+        int(_customers_region_count(processed, "华东")),
         notes="明确说注册地 → 用 customers.region，不是 ship_region",
         glossary_terms=("地区 / 大区",),
     ))
@@ -357,8 +368,16 @@ def build_cases(processed: Path) -> list[EvalCase]:
         "D05", "D 时间序列", "2025 年下半年（7-12 月）的销售额是多少？", "scalar",
         money(v[(v["order_date"] >= "2025-07-01") & (v["order_date"] < "2026-01-01")]["order_amount"].sum()),
     ))
-    q_sales = (v.assign(q=v["order_date"].dt.quarter, y=v["order_date"].dt.year)
-               .query("y == 2025").groupby("q")["order_amount"].sum().round(2))
+    # 用显式布尔索引而不是 `.query("y == 2025")`。
+    #
+    # 这不是风格偏好：pandas 2.x 的 `DataFrame.query` 在解析时会对**所有列**做
+    # dtype 推断，遇到中文 object 列（customer_region 等）会把列名和 dtype
+    # 拼成字符串再当 dtype 解析，直接抛
+    #   TypeError: dtype 'customer_region    object\ncustomer_region    object\ndtype: object' not understood
+    # 本地 pandas 3.0 已修，CI 的 3.10 环境装到 2.3.3，于是只有 py3.10 挂。
+    # 显式索引写法在任何版本上行为一致，也更好读。
+    _q = v.assign(q=v["order_date"].dt.quarter, y=v["order_date"].dt.year)
+    q_sales = (_q[_q["y"] == 2025].groupby("q")["order_amount"].sum().round(2))
     add(EvalCase(
         "D06", "D 时间序列", "2025 年四个季度各自的销售额（用 1-4 表示季度）", "series",
         [[int(k), money(x)] for k, x in q_sales.items()],
