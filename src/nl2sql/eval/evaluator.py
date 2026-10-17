@@ -159,31 +159,52 @@ def judge(case: EvalCase, res: AgentResult) -> JudgeResult:
 
     # 3) 序列 / 行集合题
     exp_rows = _normalize_expected(exp)
-    got_rows = [_normalize_got(r, len(exp_rows[0]) if exp_rows else 1) for r in rows]
+    n_exp_cols = len(exp_rows[0]) if exp_rows and exp_rows[0] else 1
 
-    if len(got_rows) != len(exp_rows):
+    if len(rows) != len(exp_rows):
         return JudgeResult(
             False, "行数不符",
-            f"返回 {len(got_rows)} 行，期望 {len(exp_rows)} 行"
+            f"返回 {len(rows)} 行，期望 {len(exp_rows)} 行"
         )
 
+    # 每行可能有多种裁列方式，取「能让全部行都对上」的那一种
+    def align(cands_per_row: list[list[list[Any]]]) -> tuple[bool, str]:
+        # 先试顺序敏感/顺序无关两种比较，任一成功即可
+        for scheme in range(max(len(c) for c in cands_per_row)):
+            pick = [c[min(scheme, len(c) - 1)] for c in cands_per_row]
+            if case.order_sensitive:
+                bad = next((i for i, (g, e) in enumerate(zip(pick, exp_rows))
+                            if not _row_equal(g, e, case.tolerance)), None)
+                if bad is None:
+                    return True, ""
+            else:
+                unmatched = list(exp_rows)
+                ok = True
+                for g in pick:
+                    hit = next((e for e in unmatched if _row_equal(g, e, case.tolerance)), None)
+                    if hit is None:
+                        ok = False
+                        break
+                    unmatched.remove(hit)
+                if ok:
+                    return True, ""
+        return False, ""
+
+    cands = [_crop_candidates(r, n_exp_cols) for r in rows]
+    ok, _ = align(cands)
+    if ok:
+        return JudgeResult(True)
+
+    # 失败时给出最有信息量的说明
+    got = [_crop_candidates(r, n_exp_cols)[0] for r in rows]
     if case.order_sensitive:
-        for i, (g, e) in enumerate(zip(got_rows, exp_rows)):
+        for i, (g, e) in enumerate(zip(got, exp_rows)):
             if not _row_equal(g, e, case.tolerance):
                 return JudgeResult(
                     False, "数值误差" if _keys_match(g, e, case.tolerance) else "排序不符",
                     f"第 {i + 1} 行：得到 {g}，期望 {e}"
                 )
-        return JudgeResult(True)
-
-    # 顺序无关：按 key 配对
-    unmatched = list(exp_rows)
-    for g in got_rows:
-        hit = next((e for e in unmatched if _row_equal(g, e, case.tolerance)), None)
-        if hit is None:
-            return JudgeResult(False, "数值误差", f"多出/不匹配的行：{g}")
-        unmatched.remove(hit)
-    return JudgeResult(True)
+    return JudgeResult(False, "数值误差", f"得到 {got[0]}，期望 {exp_rows[0]}")
 
 
 def _normalize_expected(exp: Any) -> list[list[Any]]:
@@ -197,24 +218,36 @@ def _normalize_expected(exp: Any) -> list[list[Any]]:
     return [[x] for x in exp]
 
 
-def _normalize_got(row: tuple, expected_ncols: int) -> list[Any]:
-    """把 SQL 结果行裁到与期望相同的列数。
+def _crop_candidates(row: tuple, expected_ncols: int) -> list[list[Any]]:
+    """模型多给列时，返回所有可能的「裁列方案」，交给判分去选最匹配的那个。
 
-    现实情况：模型经常多带一列（比如除了销售额还 SELECT 了订单数），
-    或者少一列。裁列而不是直接判错，是为了不让「多给了一个有用信息」变成扣分项；
-    但如果**键列错位**，下面的比较会立刻暴露。
+    现实情况：模型经常多带一列——例如问「各渠道销售额」，它除了渠道和金额，
+    还顺手 SELECT 了订单数或占比。多给信息不该算错，但**把哪几列对上是不可预知的**：
+      - 多列在尾部：`渠道 | 金额 | 订单数`   → 应取前 2 列
+      - 多列在中间：`渠道 | 名称 | 金额`     → 应取首列 + 末列
+    所以不猜，直接把「首 N 列」和「末 N 列」都作为候选，判分时取能对上的那个。
+    这个改动来自一次真实的假阴性：早先的启发式（按数值列多少取尾部）
+    把 `渠道 | 金额 | 订单数` 错裁成 `金额 | 订单数`，导致正确答案被判错。
     """
     r = list(row)
-    if len(r) > expected_ncols:
-        # 优先保留「前 expected_ncols 列」，但如果最后一列是数值而第一列不是，
-        # 说明模型把数值放在了后面——此时取最后 expected_ncols 列更合理。
-        if expected_ncols >= 2:
-            head_numeric = [_num(x) is not None for x in r[:expected_ncols]]
-            tail_numeric = [_num(x) is not None for x in r[-expected_ncols:]]
-            if sum(tail_numeric) > sum(head_numeric):
-                return r[-expected_ncols:]
-        return r[:expected_ncols]
-    return r
+    if len(r) <= expected_ncols:
+        return [r]
+    cands = [r[:expected_ncols], r[-expected_ncols:]]
+    if expected_ncols >= 2:
+        cands.append([r[0]] + r[-(expected_ncols - 1):])
+    # 去重但保持顺序
+    out, seen = [], set()
+    for c in cands:
+        k = tuple(str(x) for x in c)
+        if k not in seen:
+            seen.add(k)
+            out.append(c)
+    return out
+
+
+def _normalize_got(row: tuple, expected_ncols: int) -> list[Any]:
+    """默认裁列（首 N 列）。实际的判分用 `_crop_candidates` 逐个尝试。"""
+    return _crop_candidates(row, expected_ncols)[0]
 
 
 def _row_equal(g: list[Any], e: list[Any], tol: float) -> bool:
