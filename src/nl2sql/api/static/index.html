@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自然语言数据分析 Agent</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="logo">NL</span>
+    <div>
+      <h1>自然语言数据分析 Agent</h1>
+      <p>问题 → SQL → 安全校验 → 执行 → 结果解读</p>
+    </div>
+  </div>
+  <div class="badges" id="badges"></div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="ask">提问</button>
+  <button class="tab" data-tab="guard">安全护栏演示</button>
+  <button class="tab" data-tab="data">数据集与口径</button>
+</nav>
+
+<!-- ══════════ 提问 ══════════ -->
+<section id="tab-ask" class="panel active">
+  <div class="ask-box">
+    <textarea id="question" rows="2"
+      placeholder="例如：2025 年 6 月华东区的有效销售额是多少？"></textarea>
+    <div class="ask-actions">
+      <label class="chk"><input type="checkbox" id="with-answer" checked> 生成解读</label>
+      <button id="ask-btn" class="primary">分析</button>
+    </div>
+  </div>
+
+  <div class="chips" id="examples"></div>
+
+  <div id="ask-result" class="result hidden">
+    <div class="verdict" id="verdict"></div>
+
+    <div class="block">
+      <h3>生成的 SQL</h3>
+      <pre class="sql" id="out-sql"></pre>
+    </div>
+
+    <div class="block">
+      <h3>执行结果 <span class="muted" id="out-meta"></span></h3>
+      <div class="table-wrap"><table id="out-table"></table></div>
+    </div>
+
+    <div class="block" id="answer-block">
+      <h3>解读 <span class="tag" id="grounding-tag"></span></h3>
+      <p class="answer" id="out-answer"></p>
+    </div>
+
+    <div class="block">
+      <h3>执行轨迹</h3>
+      <ol class="trace" id="out-trace"></ol>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 护栏演示 ══════════ -->
+<section id="tab-guard" class="panel">
+  <p class="hint">
+    这里可以直接执行任意 SQL。危险语句会被 <b>AST 护栏</b>拦截并给出原因——
+    拦截发生在解析后的语法树层面，不是关键字正则匹配，所以注释、大小写、多语句都绕不过去。
+  </p>
+  <div class="guard-grid">
+    <div>
+      <h3>试试这些</h3>
+      <ul class="attack-list" id="attacks"></ul>
+    </div>
+    <div>
+      <textarea id="raw-sql" rows="5" placeholder="输入 SQL…"></textarea>
+      <button id="run-sql-btn" class="primary">执行</button>
+      <pre id="guard-out" class="guard-out"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 数据集 ══════════ -->
+<section id="tab-data" class="panel">
+  <div id="stats" class="stats"></div>
+  <h3>表结构</h3>
+  <div id="tables"></div>
+  <h3>业务口径</h3>
+  <div id="glossary"></div>
+</section>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

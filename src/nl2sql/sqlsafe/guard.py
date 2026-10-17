@@ -85,6 +85,7 @@ FORBIDDEN_NODE_NAMES: frozenset[str] = frozenset({
     "Insert", "Update", "Delete", "Merge", "Create", "Drop", "Alter",
     "TruncateTable", "Copy", "Attach", "Detach", "Pragma", "Set", "Use",
     "Command", "Transaction", "Commit", "Rollback", "Grant", "Revoke",
+    "Install", "Load", "Export", "Alter",    # DuckDB 扩展管理语句
     "LoadData", "Export", "Call", "Execute",
 })
 
@@ -384,8 +385,24 @@ def assert_has_limit_or_aggregate(tree: exp.Expression, violations: list[Violati
 
 
 def assert_no_select_star(tree: exp.Expression, violations: list[Violation]) -> None:
-    """`SELECT *` 在宽表上会拖垮接口，且对分析问题没有意义。"""
+    """`SELECT *` 在宽表上会拖垮接口，且对分析问题没有意义。
+
+    **只拦截最终投影**：CTE / 子查询内部的 `SELECT *` 是局部展开，
+    最终结果仍是显式列出的，不会把 20 列明细吐给调用方；
+    一刀切会误杀很多正常写法（模型用 CTE 组织查询时几乎必备）。
+    """
+    # 收集所有作为「子查询/CTE 主体」的 Select 节点，从拦截范围里排除
+    inner: set[int] = set()
+    for sub in tree.find_all(exp.Subquery):
+        if isinstance(sub.this, exp.Select):
+            inner.add(id(sub.this))
+    for cte in tree.find_all(exp.CTE):
+        if isinstance(cte.this, exp.Select):
+            inner.add(id(cte.this))
+
     for select in tree.find_all(exp.Select):
+        if id(select) in inner:
+            continue
         for proj in select.expressions:
             if isinstance(proj, exp.Star):
                 violations.append(Violation(
