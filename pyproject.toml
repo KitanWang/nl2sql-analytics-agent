@@ -12,6 +12,9 @@ license = { text = "MIT" }
 dependencies = [
     "duckdb>=1.1",
     "pandas>=2.2",
+    # pyarrow 是显式依赖而不是「碰巧装了」：清洗产物与 DuckDB 的交换全部走 Parquet，
+    # 缺了它 pandas 会在 to_parquet/read_parquet 上报一个很难理解的 ImportError。
+    "pyarrow>=17.0",
     "numpy>=1.26",
     "pydantic>=2.9",
     "PyYAML>=6.0",
