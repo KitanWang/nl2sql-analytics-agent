@@ -1,12 +1,12 @@
 {
   "profile": "schema",
   "n": 50,
-  "correct": 46,
-  "accuracy": 0.92,
-  "avg_ms": 2498.3,
-  "total_ms": 124916.2,
-  "prompt_tokens": 66870,
-  "completion_tokens": 5551,
+  "correct": 47,
+  "accuracy": 0.94,
+  "avg_ms": 1801.7,
+  "total_ms": 90084.4,
+  "prompt_tokens": 66874,
+  "completion_tokens": 5279,
   "repairs_total": 0,
   "repair_rate": 0.0,
   "by_group": {
@@ -16,7 +16,7 @@
     },
     "B 业务口径": {
       "n": 10,
-      "correct": 8
+      "correct": 9
     },
     "C 分组与排名": {
       "n": 8,
@@ -24,7 +24,7 @@
     },
     "D 时间序列": {
       "n": 8,
-      "correct": 8
+      "correct": 7
     },
     "E 多表关联": {
       "n": 6,
@@ -32,7 +32,7 @@
     },
     "F 比率与占比": {
       "n": 6,
-      "correct": 4
+      "correct": 5
     },
     "G 边界与陷阱": {
       "n": 4,
@@ -40,6 +40,7 @@
     }
   },
   "by_error": {
-    "数值误差": 4
+    "数值误差": 2,
+    "安全拦截": 1
   }
 }

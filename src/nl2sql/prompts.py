@@ -51,9 +51,11 @@ SYSTEM_SQL_NOCONTEXT = """你是一名资深数据分析师，把自然语言问
 """
 
 
-# 少样本示例：数量刻意控制在 3 条。
-# 做过对比（见 experiments/few_shot_size.py）：提示词里塞 8 条示例在 50 条评测集上
-# 并没有更好，反而因为「示例长度 → 上下文里口径被稀释」导致口径类错误上升。
+# 少样本示例：数量默认 3 条。
+# 实测（reports/REPORT.md）：在口径已经写清的前提下，示例的边际收益在噪声内，
+# 但 token 成本明显。它的价值主要是「对齐输出风格」（统一一行、统一 date_trunc），
+# 不是「教业务知识」——所以 `fewshot_k=3` 而不是 8。
+# 需要更激进的召回可在 AgentConfig 里调大。
 FEW_SHOT_EXAMPLES: tuple[dict[str, str], ...] = (
     {
         "question": "2025 年 6 月华东区的有效销售额是多少？",

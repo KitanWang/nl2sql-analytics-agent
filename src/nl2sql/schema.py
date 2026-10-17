@@ -247,9 +247,12 @@ def ddl(table: Table) -> str:
 def to_prompt_schema(tables: tuple[Table, ...] = TABLES) -> str:
     """把 schema 渲染成给 LLM 看的文本。
 
-    刻意做成「表注释 + 列名(类型) — 中文口径」的形式：
-    实测把它换成纯 DDL 时，模型在「有效订单」和「客户地区 vs 收货地区」上
-    错得明显更多（见 reports/REPORT.md 的消融表）。
+    刻意做成「表注释 + 列名(类型) — 中文口径」的形式。
+
+    **这是整个项目里 ROI 最高的一处改动**：把它换成纯 DDL（`to_ddl_schema()`）后，
+    50 条评测的准确率从 94% 掉到 20%——模型会把「有效订单」猜成 `status='completed'`、
+    去用有 12% 偏差的 `order_amount_raw`、把「客户注册地」当成「收货大区」。
+    见 reports/REPORT.md 的消融表。
     """
     out: list[str] = []
     for t in tables:

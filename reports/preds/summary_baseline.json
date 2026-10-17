@@ -3,20 +3,20 @@
   "n": 50,
   "correct": 10,
   "accuracy": 0.2,
-  "avg_ms": 2290.2,
-  "total_ms": 114509.8,
-  "prompt_tokens": 29770,
-  "completion_tokens": 3893,
+  "avg_ms": 1857.5,
+  "total_ms": 92877.1,
+  "prompt_tokens": 29774,
+  "completion_tokens": 4209,
   "repairs_total": 0,
   "repair_rate": 0.0,
   "by_group": {
     "A 基础指标": {
       "n": 8,
-      "correct": 1
+      "correct": 2
     },
     "B 业务口径": {
       "n": 10,
-      "correct": 4
+      "correct": 3
     },
     "C 分组与排名": {
       "n": 8,
@@ -32,16 +32,17 @@
     },
     "F 比率与占比": {
       "n": 6,
-      "correct": 2
+      "correct": 1
     },
     "G 边界与陷阱": {
       "n": 4,
-      "correct": 1
+      "correct": 2
     }
   },
   "by_error": {
-    "数值误差": 28,
+    "数值误差": 26,
     "口径错": 9,
-    "排序不符": 3
+    "排序不符": 4,
+    "安全拦截": 1
   }
 }

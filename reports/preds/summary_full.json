@@ -1,14 +1,14 @@
 {
   "profile": "full",
   "n": 50,
-  "correct": 48,
-  "accuracy": 0.96,
-  "avg_ms": 3852.0,
-  "total_ms": 192600.7,
-  "prompt_tokens": 159388,
-  "completion_tokens": 6934,
-  "repairs_total": 1,
-  "repair_rate": 0.02,
+  "correct": 49,
+  "accuracy": 0.98,
+  "avg_ms": 3722.1,
+  "total_ms": 186105.1,
+  "prompt_tokens": 159939,
+  "completion_tokens": 7082,
+  "repairs_total": 3,
+  "repair_rate": 0.06,
   "by_group": {
     "A 基础指标": {
       "n": 8,
@@ -20,7 +20,7 @@
     },
     "C 分组与排名": {
       "n": 8,
-      "correct": 7
+      "correct": 8
     },
     "D 时间序列": {
       "n": 8,
@@ -28,11 +28,11 @@
     },
     "E 多表关联": {
       "n": 6,
-      "correct": 6
+      "correct": 5
     },
     "F 比率与占比": {
       "n": 6,
-      "correct": 5
+      "correct": 6
     },
     "G 边界与陷阱": {
       "n": 4,
@@ -40,6 +40,6 @@
     }
   },
   "by_error": {
-    "数值误差": 2
+    "排序不符": 1
   }
 }
