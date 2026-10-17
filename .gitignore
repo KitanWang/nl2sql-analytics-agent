@@ -24,8 +24,10 @@ configs/*.local.yaml
 !.env.example
 
 # ---------- 数据与运行产物 ----------
-# 原始/中间数据可由脚本一键重建，不入库；
-# 最终评测集（data/eval/）与生成好的 DuckDB 库按需入库（体积小、可复现关键结论）
+# 数据全部由脚本合成，任何产物都能用 build_warehouse.py 重建。
+# 但 data/processed/*.parquet 与 data/eval/cases.json **故意入库**（共约 1.4 MB）：
+#   · 克隆仓库后不必先跑构建，就能直接 `pytest`（CI 也这么做）；
+#   · 保证「报告里的数字 ↔ 当时的清洗结果」可一一对应，数据一改就看得出来。
 data/raw/
 data/interim/*.parquet
 data/duckdb/*.duckdb.wal

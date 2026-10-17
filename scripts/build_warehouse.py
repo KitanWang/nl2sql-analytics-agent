@@ -5,8 +5,8 @@
     uv run python scripts/build_warehouse.py --check    # 只校验已有库的口径自洽性
 
 产物：
-    data/processed/*.parquet        清洗后的表（不入库，可重建）
-    data/warehouse.duckdb           DuckDB 库（含 v_order_fact 视图）
+    data/processed/*.parquet        清洗后的表（入库：供测试与复核直接使用）
+    data/warehouse.duckdb           DuckDB 库（含 v_order_fact 视图，**不入库**，由脚本重建）
     reports/data_quality.md         数据质量报告（入库）
 """
 

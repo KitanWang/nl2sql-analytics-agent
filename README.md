@@ -228,7 +228,7 @@ src/nl2sql/
 uv venv venv
 uv pip install --python venv/bin/python -e ".[dev]"
 
-# 2. 建数仓（几秒，不联网）
+# 2. 建数仓（几秒，不联网；DuckDB 库不入库，必须由这一步生成）
 venv/bin/python scripts/build_warehouse.py
 #    → data/warehouse.duckdb、reports/data_quality.md
 #    → 会顺带做「视图汇总 == pandas 汇总」的口径自洽性校验
