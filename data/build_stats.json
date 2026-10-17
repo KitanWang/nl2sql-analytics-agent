@@ -4,10 +4,12 @@
       "rows": 9000,
       "mismatch_rows": 590,
       "mismatch_rate": 0.0658,
-      "mean_dev_pct": -1.7583,
-      "median_dev_pct": 0.0,
+      "material_rows": 587,
+      "material_rate": 0.0655,
+      "material_median_dev_pct": 0.12,
+      "money_weighted_dev_pct": 0.0118,
       "p95_abs_dev_pct": 0.12,
-      "max_abs_dev_pct": 15843.0682
+      "amount_at_stake": 5797251.63
     },
     "payment_units": {
       "converted_rows": 41,

@@ -45,7 +45,7 @@ class CleaningReport:
             "reason": reason,
             "rows_before": before,
             "rows_after": after,
-            "removed": before - after,
+            "delta": after - before,
             "note": note,
         })
 
@@ -164,14 +164,28 @@ def recompute_and_validate_amounts(
     denom = out["order_amount_expected"].replace(0, np.nan)
     out["amount_deviation_pct"] = (out["amount_deviation"] / denom).round(4)
     dev = out["amount_deviation_pct"].dropna()
+    abs_dev = dev.abs()
+
+    # 金额很小的订单（运费优惠就能主导合计）会让相对偏差爆到百万倍，
+    # 直接取 mean / max 会得到没有信息量的数。这里用两种互补口径：
+    #   - 百分比口径：以「偏差的金额绝对值」加权，等价于「所有订单上偏差总额 / 订单总额」；
+    #   - 分布口径：只看 |偏差| ≥ 1% 的订单，它们是真正需要修的那批。
+    valid_dev = out["amount_deviation_pct"].notna() & (out["order_amount_expected"] > 100)
+    money_weighted = (
+        out.loc[valid_dev, "amount_deviation"].abs().sum()
+        / out.loc[valid_dev, "order_amount_expected"].abs().sum()
+    )
+    material = abs_dev[abs_dev >= 0.01]
     stats = {
         "rows": int(len(out)),
-        "mismatch_rows": int((dev.abs() > 1e-6).sum()),
-        "mismatch_rate": round(float((dev.abs() > 1e-6).mean()), 4) if len(dev) else 0.0,
-        "mean_dev_pct": round(float(dev.mean()), 4) if len(dev) else 0.0,
-        "median_dev_pct": round(float(dev.median()), 4) if len(dev) else 0.0,
-        "p95_abs_dev_pct": round(float(dev.abs().quantile(0.95)), 4) if len(dev) else 0.0,
-        "max_abs_dev_pct": round(float(dev.abs().max()), 4) if len(dev) else 0.0,
+        "mismatch_rows": int((abs_dev > 1e-6).sum()),
+        "mismatch_rate": round(float((abs_dev > 1e-6).mean()), 4) if len(dev) else 0.0,
+        "material_rows": int(len(material)),
+        "material_rate": round(float(len(material) / len(dev)), 4) if len(dev) else 0.0,
+        "material_median_dev_pct": round(float(material.median()), 4) if len(material) else 0.0,
+        "money_weighted_dev_pct": round(float(money_weighted), 4),
+        "p95_abs_dev_pct": round(float(abs_dev.quantile(0.95)), 4) if len(dev) else 0.0,
+        "amount_at_stake": round(float(out["amount_deviation"].abs().sum()), 2),
     }
     return out, stats
 
@@ -264,7 +278,9 @@ def clean(raw: Dataset) -> CleanResult:
     rep.add("订单金额以明细汇总为准", "源系统 order_amount_raw 与明细不符（旧价目表）",
             len(orders), len(orders),
             note=f"偏差订单 {amount_stats['mismatch_rows']} 条"
-                 f"（{amount_stats['mismatch_rate']:.1%}），中位偏差 {amount_stats['median_dev_pct']:+.1%}")
+                 f"（{amount_stats['mismatch_rate']:.1%}），"
+                 f"其中偏差≥1% 的有 {amount_stats['material_rows']} 条"
+                 f"（中位偏差 {amount_stats['material_median_dev_pct']:+.1%}）")
 
     # ── 6. 回款单位换算 ──
     payments, pay_unit = normalize_payment_units(raw.payments)
@@ -417,15 +433,20 @@ def render_quality_report(result: CleanResult) -> str:
         "",
         "## 2. 清洗规则与影响行数",
         "",
-        "| # | 规则 | 为什么要做 | 处理前 | 处理后 | 变化 | 备注 |",
+        "| # | 规则 | 为什么要做 | 处理前 | 处理后 | 净变化 | 备注 |",
         "| ---: | :--- | :--- | ---: | ---: | ---: | :--- |",
     ]
     for i, row in enumerate(rep.itertuples(index=False), 1):
         lines.append(
             f"| {i} | {row.rule} | {row.reason} | {row.rows_before:,} | "
-            f"{row.rows_after:,} | {row.removed:+,} | {row.note} |"
+            f"{row.rows_after:,} | {row.delta:+,} | {row.note} |"
         )
-
+    lines += [
+        "",
+        "「净变化」为 0 的规则属于**就地改写**（去重、换算单位、置状态、封顶金额），"
+        "它们不改变行数，但会改变数值——这正是最容易被漏掉的一类清洗。",
+        "",
+    ]
     lines += [
         "",
         "## 3. 关键决策：订单金额为什么不用源字段",
@@ -433,13 +454,13 @@ def render_quality_report(result: CleanResult) -> str:
         "源系统的 `sales_orders.order_amount_raw` **与明细汇总对不上**，这是刻意注入的脏数据，",
         "也正是真实数仓里最常见的坑：口径字段没人维护，报出来的销售额永远是错的。",
         "",
-        "| 指标 | 值 |",
-        "| :--- | ---: |",
-        f"| 有偏差的订单占比 | {av['mismatch_rate']:.1%} |",
-        f"| 中位偏差 | {av['median_dev_pct']:+.2%} |",
-        f"| 平均偏差 | {av['mean_dev_pct']:+.2%} |",
-        f"| P95 绝对偏差 | {av['p95_abs_dev_pct']:.2%} |",
-        f"| 最大绝对偏差 | {av['max_abs_dev_pct']:.2%} |",
+        "| 指标 | 值 | 说明 |",
+        "| :--- | ---: | :--- |",
+        f"| 有偏差的订单 | {av['mismatch_rows']:,} 条（{av['mismatch_rate']:.1%}） | 任意金额差 ≥ 0.01 元 |",
+        f"| 偏差 ≥ 1% 的订单 | {av['material_rows']:,} 条（{av['material_rate']:.1%}） | 真正需要修的这批 |",
+        f"| 这批的中位偏差 | {av['material_median_dev_pct']:+.2%} | 源系统用了过期的价目表 |",
+        f"| 金额加权偏差率 | {av['money_weighted_dev_pct']:.2%} | \|偏差总额\| / 订单总额，不受小单放大 |",
+        f"| 受影响金额 | {av['amount_at_stake']:,.0f} 元 | 若直接用 raw 字段会算错的金额规模 |",
         "",
         "**结论**：销售额一律由 `order_items` 汇总计算（视图 `v_order_fact.order_amount` 已固化该口径）。",
         "这属于「在数据层解决、而不是靠提示词叮嘱模型」的问题——"
