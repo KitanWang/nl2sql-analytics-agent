@@ -200,7 +200,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
         glossary_terms=("客单价（AOV）", "净销售额"),
     ))
     add(EvalCase(
-        "B04", "B 业务口径", "2025 年整体毛利率是多少？（用 0-1 之间的小数表示）", "scalar",
+        "B04", "B 业务口径", "2025 年整体毛利率是多少？（订单金额−商品成本−退款）／订单金额，0-1 小数", "scalar",
         round(float((v[v["order_date"].dt.year == 2025]["order_amount"]
                      - v[v["order_date"].dt.year == 2025]["items_cost"]
                      - v[v["order_date"].dt.year == 2025]["refund_amount"]).sum()
@@ -222,17 +222,26 @@ def build_cases(processed: Path) -> list[EvalCase]:
     ))
     # 退款有两个自然的月份口径：退款到账月（refunds.refund_date）与所属订单月（order_date）。
     # 两者差异极大（一笔 6 月订单可能 8 月才退），不写清楚就是评测集自己的缺陷。
+    # 退款口径有个反直觉的坑：**退款订单的状态是 refunded，本身就不在「有效订单」里**。
+    # 如果按 f.valid 过滤，会把退款 880 万漏掉 98%（只剩 completed 订单的小额售后退款）。
+    # 所以这道题的分母必须是「6 月下单的全部订单」，而不是有效订单。
+    jun_all = f[f["year_month"] == "2025-06"]
     add(EvalCase(
-        "B07", "B 业务口径", "2025 年 6 月下单的那些订单，一共产生了多少退款金额？", "scalar",
-        money(v[v["year_month"] == "2025-06"]["refund_amount"].sum()),
-        notes="按订单所属月份归属退款；只统计 status='success'。"
-              "与「按退款到账月」差异大，题面必须写清口径",
+        "B07", "B 业务口径", "2025 年 6 月下单的所有订单，一共产生了多少退款金额？（含已退款订单）", "scalar",
+        money(jun_all["refund_amount"].sum()),
+        notes="按订单所属月份归属退款；只统计 refunds.status='success'。"
+              "注意退款订单状态是 refunded，**不能用有效订单过滤**，否则漏掉 98%",
         glossary_terms=("退款率",),
     ))
+    # 回款同样有两个月份口径：到账月（payments.pay_date）与所属订单月（order_date）。
+    # 题面必须指定，否则模型选哪个都「有道理」——那是评测集的问题，不是模型的问题。
+    pay = pd.read_parquet(processed / "payments.parquet")
+    pay["pay_month"] = pd.to_datetime(pay["pay_date"]).dt.strftime("%Y-%m")
+    jun_pay = pay[(pay["pay_status"] == "success") & (pay["pay_month"] == "2025-06")]
     add(EvalCase(
-        "B08", "B 业务口径", "2025 年 6 月的回款总额是多少？", "scalar",
-        money(v[v["year_month"] == "2025-06"]["pay_amount"].sum()),
-        notes="只统计 pay_status='success' 的回款",
+        "B08", "B 业务口径", "2025 年 6 月实际到账的回款总额是多少？（按到账日期）", "scalar",
+        money(jun_pay["amount"].sum()),
+        notes="按 payments.pay_date 的月份归属；只统计 pay_status='success'",
     ))
     add(EvalCase(
         "B09", "B 业务口径", "2025 年 4 月的有效销售额是多少？", "scalar",
@@ -430,10 +439,14 @@ def build_cases(processed: Path) -> list[EvalCase]:
     # 这是评测集自身的 bug，不是模型错。
     cust_cnt = (v.groupby("customer_name")["order_id"].nunique()
                 .sort_values(ascending=False).head(5))
+    # 第 4、5 名同为 58 笔，谁排前面取决于二次排序键——这是「并列处理」的典型陷阱。
+    # 判分不加 order_sensitive，否则答案正确也会因为顺序判错；
+    # 想考排序的题已经在 C 组（C01/C02 等）用**无并列**的数据覆盖了。
     add(EvalCase(
         "E06", "E 多表关联", "哪 5 个客户的有效订单笔数最多？（只要客户名和笔数）", "series",
         [[k, int(x)] for k, x in cust_cnt.items()],
-        order_sensitive=True,
+        order_sensitive=False,
+        notes="第 4/5 名同分（并列），故不判顺序；它是「TOP N 集合正确」的考点",
         glossary_terms=("销售排名 TOP N",),
     ))
 
@@ -442,7 +455,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
         lambda g: g["refund_amount"].sum() / g["order_amount"].sum(), include_groups=False)
         .sort_values(ascending=False).round(4))
     add(EvalCase(
-        "F01", "F 比率与占比", "各行业的退款率是多少？（小数）", "series",
+        "F01", "F 比率与占比", "各行业的退款率是多少？（退款金额 / 销售额，0-1 小数）", "series",
         [[k, round(float(x), 4)] for k, x in refund_rate.items()],
         order_sensitive=True, tolerance=0.02,
         glossary_terms=("退款率",),
@@ -482,6 +495,7 @@ def build_cases(processed: Path) -> list[EvalCase]:
     aov_chan = (v.groupby("channel").apply(
         lambda g: (g["order_amount"].sum() - g["refund_amount"].sum()) / g["order_id"].nunique(),
         include_groups=False).round(2))
+    # 这一列与 B03 用完全相同的公式，保证「客单价」在两个粒度上口径一致
     add(EvalCase(
         "F06", "F 比率与占比", "哪个渠道的客单价最高？客单价是多少？（净销售额 / 有效订单数）", "series",
         [[str(aov_chan.idxmax()), money(aov_chan.max())]],
