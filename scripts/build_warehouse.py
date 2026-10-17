@@ -64,8 +64,11 @@ def build() -> dict:
     for table in TABLES:
         fname = TABLE_FILE[table.name]
         con.execute(ddl(table))
+        # 显式列出数仓字段：Parquet 里还带着审计列（金额校验的中间结果），不应入库
+        cols = ", ".join(f'"{c.name}"' for c in table.columns)
         con.execute(
-            f"INSERT INTO {table.name} SELECT * FROM read_parquet('{paths[fname]}')"
+            f"INSERT INTO {table.name} ({cols}) "
+            f"SELECT {cols} FROM read_parquet('{paths[fname]}')"
         )
         n = con.execute(f"SELECT COUNT(*) FROM {table.name}").fetchone()[0]
         print(f"      {table.name:<15} {n:>7,} 行")

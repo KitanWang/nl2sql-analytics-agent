@@ -232,12 +232,16 @@ def drop_orphans(
     合成数据本身不会产生孤儿，但清洗后的剔除（如内部测试客户）会制造孤儿，
     所以这一步必须放在所有剔除动作之后，否则会出现「明细指向已删订单」的悬空引用。
     """
-    valid_orders = set(orders["order_id"])
     valid_customers = set(customers["customer_id"])
     valid_products = set(products["product_id"])
 
     before_o, before_i, before_p, before_r = len(orders), len(items), len(payments), len(refunds)
+    # 先算最终留下的订单，再用它过滤明细/回款/退款。
+    # 曾经的写法是先用旧 orders 算 valid_orders 再过滤订单，导致
+    # 「订单被剔除但明细留下」——44 条悬空明细，视图 JOIN 时才消失，
+    # 非常隐蔽。测试 test_clean_has_no_orphans 就是为了钉住这一点。
     orders2 = orders[orders["customer_id"].isin(valid_customers)].reset_index(drop=True)
+    valid_orders = set(orders2["order_id"])
     items2 = items[items["order_id"].isin(valid_orders)
                    & items["product_id"].isin(valid_products)].reset_index(drop=True)
     payments2 = payments[payments["order_id"].isin(valid_orders)].reset_index(drop=True)
@@ -368,11 +372,19 @@ def clean(raw: Dataset) -> CleanResult:
     keep_cancelled = no_items & orders["status"].isin(["cancelled", "refunded", "pending"])
     drop_mask = no_items & ~keep_cancelled
     dropped_status = orders.loc[drop_mask, "status"].value_counts().to_dict()
+    dropped_ids = set(orders.loc[drop_mask, "order_id"])
+    n_before = len(orders)
     orders = orders[~drop_mask].reset_index(drop=True)
     rep.add("剔除无明细的有效订单", "红冲明细被剔除后留下的空订单，会让「视图汇总 ≠ 全表汇总」",
-            int(len(orders) + drop_mask.sum()), len(orders),
+            n_before, len(orders),
             note=f"剔除 {int(drop_mask.sum())} 条（状态分布 {dropped_status}），"
                  f"另有 {int(keep_cancelled.sum())} 条非有效状态空订单保留")
+
+    # 订单被剔除后，回款/退款里的对应记录会变成新的孤儿——必须再清一次。
+    # 这是第二次调用 drop_orphans 的原因，也是「一次清洗不够」的典型例子。
+    if dropped_ids:
+        payments = payments[~payments["order_id"].isin(dropped_ids)].reset_index(drop=True)
+        refunds = refunds[~refunds["order_id"].isin(dropped_ids)].reset_index(drop=True)
 
     # ── 9. 类型收敛 ──
     for col in ("order_date", "signup_date", "launch_date", "date_key"):
@@ -387,10 +399,8 @@ def clean(raw: Dataset) -> CleanResult:
                 valid_products = valid_products.assign(
                     launch_date=pd.to_datetime(valid_products["launch_date"]).dt.date
                 )
-    # 审计列（金额校验的过程列）只留在 Parquet，数仓里只保留 schema 声明过的字段
-    orders = orders[[c for c in orders.columns if c not in (
-        "items_amount", "order_amount_expected", "amount_deviation", "amount_deviation_pct"
-    )]]
+    # 审计列（items_amount / order_amount_expected / amount_deviation*）保留在
+    # Dataset 里：数据质量报告与单元测试都要用；入库时按 schema 显式选列。
 
     for col in ("pay_date",):
         payments[col] = pd.to_datetime(payments[col]).dt.date
@@ -511,7 +521,7 @@ def render_quality_report(result: CleanResult) -> str:
         f"| 有偏差的订单 | {av['mismatch_rows']:,} 条（{av['mismatch_rate']:.1%}） | 任意金额差 ≥ 0.01 元 |",
         f"| 偏差 ≥ 1% 的订单 | {av['material_rows']:,} 条（{av['material_rate']:.1%}） | 真正需要修的这批 |",
         f"| 这批的中位偏差 | {av['material_median_dev_pct']:+.2%} | 源系统用了过期的价目表 |",
-        f"| 金额加权偏差率 | {av['money_weighted_dev_pct']:.2%} | \|偏差总额\| / 订单总额，不受小单放大 |",
+        f"| 金额加权偏差率 | {av['money_weighted_dev_pct']:.2%} | 偏差总额绝对值 / 订单总额，不受小单放大 |",
         f"| 受影响金额 | {av['amount_at_stake']:,.0f} 元 | 若直接用 raw 字段会算错的金额规模 |",
         "",
         "**结论**：销售额一律由 `order_items` 汇总计算（视图 `v_order_fact.order_amount` 已固化该口径）。",

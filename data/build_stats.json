@@ -25,9 +25,9 @@
     },
     "orphans": {
       "orders_removed": 68,
-      "items_removed": 0,
-      "payments_removed": 0,
-      "refunds_removed": 0
+      "items_removed": 170,
+      "payments_removed": 61,
+      "refunds_removed": 6
     },
     "future_orders": {
       "flagged": 20,
@@ -39,16 +39,16 @@
       "customers": 474,
       "products": 216,
       "orders": 8927,
-      "order_items": 22317,
-      "payments": 8357,
-      "refunds": 753,
+      "order_items": 22147,
+      "payments": 8291,
+      "refunds": 746,
       "calendar": 731
     },
     "date_range": [
       "2024-01-01",
       "2026-03-15"
     ],
-    "content_hash": "4f0cd47b779408de"
+    "content_hash": "739ae37e1d46ffda"
   },
   "report": "reports/data_quality.md",
   "db": "data/warehouse.duckdb"

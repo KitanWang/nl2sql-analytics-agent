@@ -395,8 +395,9 @@ def inject_dirty(data: Dataset, seed: int = 7) -> Dataset:
     payments = data.payments.copy()
     refunds = data.refunds.copy()
 
-    # 1) 订单号重复
-    dup = orders.sample(n=120, random_state=seed).copy()
+    # 1) 订单号重复（样本量按数据规模自适应，避免小数据集上 sample 越界）
+    n_dup = min(120, max(1, len(orders) // 8))
+    dup = orders.sample(n=n_dup, random_state=seed).copy()
     dup["status"] = "cancelled"
     dup["updated_at"] = dup["updated_at"] + pd.Timedelta(days=2)
     dup["order_amount_raw"] = (dup["order_amount_raw"] * 0.9).round(2)
@@ -404,34 +405,34 @@ def inject_dirty(data: Dataset, seed: int = 7) -> Dataset:
     orders = pd.concat([orders, dup], ignore_index=True)
 
     # 2) 部分回款金额变成「分」
-    idx = payments.sample(n=180, random_state=seed + 1).index
+    idx = payments.sample(n=min(180, max(1, len(payments) // 10)), random_state=seed + 1).index
     payments.loc[idx, "amount"] = (payments.loc[idx, "amount"] * 100).round(2)
 
     # 3) 负数 / 0 数量明细（红冲）
-    idx = items.sample(n=90, random_state=seed + 2).index
+    idx = items.sample(n=min(90, max(1, len(items) // 10)), random_state=seed + 2).index
     items.loc[idx, "quantity"] = -items.loc[idx, "quantity"]
     items.loc[idx, "item_amount"] = -items.loc[idx, "item_amount"]
 
     # 4) 客户名全半角与空格
-    idx = customers.sample(n=60, random_state=seed + 3).index
+    idx = customers.sample(n=min(60, max(1, len(customers) // 5)), random_state=seed + 3).index
     customers.loc[idx, "customer_name"] = customers.loc[idx, "customer_name"].str.replace(
         "有限公司", "（有限公司）", regex=False
     )
-    idx = customers.sample(n=40, random_state=seed + 4).index
+    idx = customers.sample(n=min(40, max(1, len(customers) // 6)), random_state=seed + 4).index
     customers.loc[idx, "customer_name"] = customers.loc[idx, "customer_name"] + "  "
 
     # 5) 未来单：把 20 条的下单日期推后
-    idx = orders.sample(n=20, random_state=seed + 5).index
+    idx = orders.sample(n=min(20, max(1, len(orders) // 20)), random_state=seed + 5).index
     orders.loc[idx, "order_date"] = date(2026, 3, 15)
 
     # 6) order_amount_raw 偏差（模拟旧价目表）
-    idx = orders.sample(n=400, random_state=seed + 6).index
+    idx = orders.sample(n=min(400, max(1, len(orders) // 3)), random_state=seed + 6).index
     orders.loc[idx, "order_amount_raw"] = (
         orders.loc[idx, "order_amount_raw"] * 0.88
     ).round(2)
 
     # 7) 内购测试单：客户名里带「测试」「内部」
-    idx = customers.sample(n=6, random_state=seed + 7).index
+    idx = customers.sample(n=min(6, len(customers)), random_state=seed + 7).index
     customers.loc[idx, "customer_name"] = "内部测试_" + customers.loc[idx, "customer_name"]
 
     # 8) 退款金额超订单金额

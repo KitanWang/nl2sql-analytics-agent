@@ -1,0 +1,49 @@
+{
+  "profile": "glossary",
+  "n": 50,
+  "correct": 36,
+  "accuracy": 0.72,
+  "avg_ms": 2553.4,
+  "total_ms": 127672.1,
+  "prompt_tokens": 132189,
+  "completion_tokens": 3760,
+  "repairs_total": 0,
+  "repair_rate": 0.0,
+  "by_group": {
+    "A 基础指标": {
+      "n": 8,
+      "correct": 8
+    },
+    "B 业务口径": {
+      "n": 10,
+      "correct": 9
+    },
+    "C 分组与排名": {
+      "n": 8,
+      "correct": 5
+    },
+    "D 时间序列": {
+      "n": 8,
+      "correct": 5
+    },
+    "E 多表关联": {
+      "n": 6,
+      "correct": 1
+    },
+    "F 比率与占比": {
+      "n": 6,
+      "correct": 4
+    },
+    "G 边界与陷阱": {
+      "n": 4,
+      "correct": 4
+    }
+  },
+  "by_error": {
+    "数值误差": 3,
+    "排序不符": 5,
+    "执行失败": 4,
+    "无结果": 1,
+    "行数不符": 1
+  }
+}
