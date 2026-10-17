@@ -1,0 +1,46 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# ---------- 虚拟环境（uv 在工程内创建，不入库）----------
+venv/
+.venv/
+
+# ---------- 本地配置与密钥 ----------
+# configs/local.yaml 是唯一存放 API key 的地方，绝不入库
+configs/local.yaml
+configs/*.local.yaml
+.env
+.env.*
+!.env.example
+
+# ---------- 数据与运行产物 ----------
+# 原始/中间数据可由脚本一键重建，不入库；
+# 最终评测集（data/eval/）与生成好的 DuckDB 库按需入库（体积小、可复现关键结论）
+data/raw/
+data/interim/*.parquet
+data/duckdb/*.duckdb.wal
+data/*.duckdb
+data/*.duckdb.wal
+
+# ---------- 运行输出 ----------
+runs/
+outputs/
+reports/preds/*.jsonl
+reports/*.log
+*.log
+
+# ---------- 编辑器 / 系统 ----------
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

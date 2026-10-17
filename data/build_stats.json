@@ -1,0 +1,51 @@
+{
+  "cleaning": {
+    "amount_validation": {
+      "rows": 9000,
+      "mismatch_rows": 590,
+      "mismatch_rate": 0.0658,
+      "mean_dev_pct": -1.7583,
+      "median_dev_pct": 0.0,
+      "p95_abs_dev_pct": 0.12,
+      "max_abs_dev_pct": 15843.0682
+    },
+    "payment_units": {
+      "converted_rows": 41,
+      "max_before": 70268590.0,
+      "max_after": 4989600.0
+    },
+    "refund_cap": {
+      "capped": 19,
+      "total_before": 23460842.26,
+      "total_after": 23195498.91
+    },
+    "orphans": {
+      "orders_removed": 68,
+      "items_removed": 0,
+      "payments_removed": 0,
+      "refunds_removed": 0
+    },
+    "future_orders": {
+      "flagged": 20,
+      "dates": [
+        "2026-03-15"
+      ]
+    },
+    "rows": {
+      "customers": 474,
+      "products": 216,
+      "orders": 8927,
+      "order_items": 22317,
+      "payments": 8357,
+      "refunds": 753,
+      "calendar": 731
+    },
+    "date_range": [
+      "2024-01-01",
+      "2026-03-15"
+    ],
+    "content_hash": "3cf53e75aec7cfa4"
+  },
+  "report": "reports/data_quality.md",
+  "db": "data/warehouse.duckdb"
+}
