@@ -143,7 +143,7 @@
   {
     "id": "B04",
     "group": "B 业务口径",
-    "question": "2025 年整体毛利率是多少？（用 0-1 之间的小数表示）",
+    "question": "2025 年整体毛利率是多少？（订单金额−商品成本−退款）／订单金额，0-1 小数",
     "kind": "scalar",
     "expected": 0.2353,
     "order_sensitive": false,
@@ -182,12 +182,12 @@
   {
     "id": "B07",
     "group": "B 业务口径",
-    "question": "2025 年 6 月下单的那些订单，一共产生了多少退款金额？",
+    "question": "2025 年 6 月下单的所有订单，一共产生了多少退款金额？（含已退款订单）",
     "kind": "scalar",
-    "expected": 218026.35,
+    "expected": 1883917.23,
     "order_sensitive": false,
     "tolerance": 0.005,
-    "notes": "按订单所属月份归属退款；只统计 status='success'。与「按退款到账月」差异大，题面必须写清口径",
+    "notes": "按订单所属月份归属退款；只统计 refunds.status='success'。注意退款订单状态是 refunded，**不能用有效订单过滤**，否则漏掉 98%",
     "glossary_terms": [
       "退款率"
     ]
@@ -195,12 +195,12 @@
   {
     "id": "B08",
     "group": "B 业务口径",
-    "question": "2025 年 6 月的回款总额是多少？",
+    "question": "2025 年 6 月实际到账的回款总额是多少？（按到账日期）",
     "kind": "scalar",
-    "expected": 15077540.62,
+    "expected": 14932211.52,
     "order_sensitive": false,
     "tolerance": 0.005,
-    "notes": "只统计 pay_status='success' 的回款",
+    "notes": "按 payments.pay_date 的月份归属；只统计 pay_status='success'",
     "glossary_terms": []
   },
   {
@@ -898,9 +898,9 @@
         58
       ]
     ],
-    "order_sensitive": true,
+    "order_sensitive": false,
     "tolerance": 0.005,
-    "notes": "",
+    "notes": "第 4/5 名同分（并列），故不判顺序；它是「TOP N 集合正确」的考点",
     "glossary_terms": [
       "销售排名 TOP N"
     ]
@@ -908,7 +908,7 @@
   {
     "id": "F01",
     "group": "F 比率与占比",
-    "question": "各行业的退款率是多少？（小数）",
+    "question": "各行业的退款率是多少？（退款金额 / 销售额，0-1 小数）",
     "kind": "series",
     "expected": [
       [
