@@ -233,7 +233,7 @@ venv/bin/python scripts/build_warehouse.py
 #    → data/warehouse.duckdb、reports/data_quality.md
 #    → 会顺带做「视图汇总 == pandas 汇总」的口径自洽性校验
 
-# 3. 单元测试（157 条，约 4 秒，不联网）
+# 3. 单元测试（201 条，约 6 秒，不联网）
 venv/bin/python -m pytest tests/ -v
 
 # 4. 跑评测（需要 LLM key，50 条约 2–4 分钟）

@@ -281,7 +281,7 @@ pandas 算出 7807。查询之后发现 5 笔「有效状态但没有任何明�
 ```bash
 uv venv venv && uv pip install --python venv/bin/python -e ".[dev]"
 venv/bin/python scripts/build_warehouse.py        # 建库 + 数据质量报告 + 口径自洽校验
-venv/bin/python -m pytest tests/ -v               # 157 条测试，约 4 秒
+venv/bin/python -m pytest tests/ -v               # 201 条测试，约 6 秒
 cp configs/local.yaml.example configs/local.yaml  # 填 api_key
 venv/bin/python scripts/run_eval.py --all         # 5 档配置，全跑约 10 分钟
 ```
